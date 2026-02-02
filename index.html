@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torn Faction Stats</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 min-h-screen text-white">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+                🎯 Torn Faction Stats
+            </h1>
+            <p class="text-gray-400">Analyze your faction's performance</p>
+        </div>
+
+        <!-- Input Form -->
+        <div id="inputForm" class="max-w-2xl mx-auto bg-gray-800 rounded-lg shadow-2xl p-8 mb-8">
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Faction ID</label>
+                    <input type="text" id="factionId" placeholder="Enter faction ID (e.g., 12345)" 
+                           class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Torn API Key</label>
+                    <input type="password" id="apiKey" placeholder="Your Torn API key" 
+                           class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <p class="text-xs text-gray-500 mt-2">Your API key is only used for this request and never stored.</p>
+                </div>
+                <button onclick="analyzeFaction()" 
+                        class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105">
+                    🚀 Analyze Faction
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="hidden text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4"></div>
+            <p class="text-xl">Fetching data from Torn API...</p>
+            <p class="text-sm text-gray-400 mt-2">This may take 1-2 minutes depending on faction size</p>
+        </div>
+
+        <!-- Error -->
+        <div id="error" class="hidden max-w-2xl mx-auto bg-red-900/50 border border-red-500 rounded-lg p-6 mb-8">
+            <h3 class="text-xl font-bold mb-2">❌ Error</h3>
+            <p id="errorMessage" class="text-red-200"></p>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="hidden">
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gray-800 rounded-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-purple-400" id="totalMembers">-</div>
+                    <div class="text-sm text-gray-400 mt-2">Total Members</div>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-blue-400" id="avgLevel">-</div>
+                    <div class="text-sm text-gray-400 mt-2">Average Level</div>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-green-400" id="totalAttacks">-</div>
+                    <div class="text-sm text-gray-400 mt-2">Total Attacks</div>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-yellow-400" id="avgActivity">-</div>
+                    <div class="text-sm text-gray-400 mt-2">Avg Activity</div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-4 mb-6">
+                <button onclick="downloadExcel()" 
+                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                    📥 Download Excel
+                </button>
+                <input type="text" id="searchBox" placeholder="Search members..." 
+                       onkeyup="filterTable()"
+                       class="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500">
+            </div>
+
+            <!-- Members Table -->
+            <div class="bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full" id="membersTable">
+                        <thead class="bg-gray-900">
+                            <tr>
+                                <th class="px-6 py-4 text-left cursor-pointer hover:bg-gray-800" onclick="sortTable(0)">
+                                    Name ▼
+                                </th>
+                                <th class="px-6 py-4 text-left cursor-pointer hover:bg-gray-800" onclick="sortTable(1)">
+                                    Level ▼
+                                </th>
+                                <th class="px-6 py-4 text-left cursor-pointer hover:bg-gray-800" onclick="sortTable(2)">
+                                    Attacks Won ▼
+                                </th>
+                                <th class="px-6 py-4 text-left cursor-pointer hover:bg-gray-800" onclick="sortTable(3)">
+                                    Defends Won ▼
+                                </th>
+                                <th class="px-6 py-4 text-left cursor-pointer hover:bg-gray-800" onclick="sortTable(4)">
+                                    Activity ▼
+                                </th>
+                                <th class="px-6 py-4 text-left cursor-pointer hover:bg-gray-800" onclick="sortTable(5)">
+                                    Xan Taken ▼
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-gray-700">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let factionData = null;
+        let currentSort = { column: 2, ascending: false };
+
+        async function analyzeFaction() {
+            const factionId = document.getElementById('factionId').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+
+            if (!factionId || !apiKey) {
+                showError('Please enter both Faction ID and API Key');
+                return;
+            }
+
+            // Hide previous results
+            document.getElementById('inputForm').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ faction_id: factionId, api_key: apiKey })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch data');
+                }
+
+                factionData = data;
+                displayResults(data);
+
+            } catch (error) {
+                showError(error.message);
+                document.getElementById('inputForm').classList.remove('hidden');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        function displayResults(data) {
+            // Update stats
+            document.getElementById('totalMembers').textContent = data.members.length;
+            document.getElementById('avgLevel').textContent = Math.round(data.members.reduce((s, m) => s + m.level, 0) / data.members.length);
+            document.getElementById('totalAttacks').textContent = data.members.reduce((s, m) => s + m.attackswon, 0).toLocaleString();
+            document.getElementById('avgActivity').textContent = Math.round(data.members.reduce((s, m) => s + m.useractivity, 0) / data.members.length);
+
+            // Populate table
+            populateTable(data.members);
+
+            document.getElementById('results').classList.remove('hidden');
+        }
+
+        function populateTable(members) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            members.forEach(member => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td class="px-6 py-4">${member.name}</td>
+                    <td class="px-6 py-4">${member.level}</td>
+                    <td class="px-6 py-4 text-green-400">${member.attackswon.toLocaleString()}</td>
+                    <td class="px-6 py-4 text-blue-400">${member.defendswon.toLocaleString()}</td>
+                    <td class="px-6 py-4 text-yellow-400">${member.useractivity.toLocaleString()}</td>
+                    <td class="px-6 py-4 text-purple-400">${member.xantaken.toLocaleString()}</td>
+                `;
+            });
+        }
+
+        function sortTable(column) {
+            if (!factionData) return;
+
+            const keys = ['name', 'level', 'attackswon', 'defendswon', 'useractivity', 'xantaken'];
+            const key = keys[column];
+
+            const ascending = currentSort.column === column ? !currentSort.ascending : false;
+            currentSort = { column, ascending };
+
+            const sorted = [...factionData.members].sort((a, b) => {
+                const valA = a[key];
+                const valB = b[key];
+                
+                if (typeof valA === 'string') {
+                    return ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+                return ascending ? valA - valB : valB - valA;
+            });
+
+            populateTable(sorted);
+        }
+
+        function filterTable() {
+            if (!factionData) return;
+
+            const search = document.getElementById('searchBox').value.toLowerCase();
+            const filtered = factionData.members.filter(m => 
+                m.name.toLowerCase().includes(search)
+            );
+
+            populateTable(filtered);
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('error').classList.remove('hidden');
+        }
+
+        function downloadExcel() {
+            if (!factionData) return;
+
+            // Create CSV
+            let csv = 'Name,Level,Attacks Won,Defends Won,Activity,Xan Taken\n';
+            factionData.members.forEach(m => {
+                csv += `${m.name},${m.level},${m.attackswon},${m.defendswon},${m.useractivity},${m.xantaken}\n`;
+            });
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `faction_${factionData.faction_id}_stats.csv`;
+            a.click();
+        }
+    </script>
+</body>
+</html>
