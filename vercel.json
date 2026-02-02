@@ -1,13 +1,7 @@
 {
   "functions": {
-    "api/analyze.py": {
-      "runtime": "python3.9"
+    "api/**/*.py": {
+      "runtime": "python3.12"
     }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    }
-  ]
+  }
 }
