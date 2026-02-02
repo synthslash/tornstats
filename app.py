@@ -3,6 +3,7 @@ import json
 import urllib.request
 import urllib.error
 import time
+import math
 
 app = Flask(__name__, static_folder='.')
 
@@ -11,7 +12,7 @@ app = Flask(__name__, static_folder='.')
 def index():
     return send_from_directory('.', 'index.html')
 
-# Serve static files (CSS, JS, etc.)
+# Serve static files
 @app.route('/<path:path>')
 def serve_static(path):
     return send_from_directory('.', path)
@@ -71,38 +72,63 @@ def fetch_faction_data(faction_id, api_key):
                 'level': info.get('level', 0)
             })
     
-    # Fetch stats for each member
-    stats_keys = ['attackswon', 'defendswon', 'useractivity', 'xantaken']
+    # Stats keys
+    stats_keys = [
+        'attackswon', 'attackslost', 'defendswon', 'defendslost', 'rankedwarhits',
+        'xantaken', 'boostersused', 'energydrinkused', 'statenhancersused',
+        'useractivity', 'refills', 'nerverefills', 'activestreak',
+        'organisedcrimes', 'criminaloffenses'
+    ]
     
+    # Calculate timestamps
+    now = int(time.time())
+    week_ago = now - (7 * 24 * 60 * 60)
+    month_ago = now - (30 * 24 * 60 * 60)
+    
+    # Fetch stats for each member
     for member in member_list:
         try:
-            stats_url = f"https://api.torn.com/user/{member['id']}?selections=personalstats&stat={','.join(stats_keys)}&key={api_key}"
-            stats_data = fetch_url(stats_url)
+            # Current stats
+            current_stats = fetch_player_stats(member['id'], stats_keys, None, api_key)
             
-            if 'personalstats' in stats_data:
-                ps = stats_data['personalstats']
-                member['attackswon'] = ps.get('attackswon', 0)
-                member['defendswon'] = ps.get('defendswon', 0)
-                member['useractivity'] = ps.get('useractivity', 0)
-                member['xantaken'] = ps.get('xantaken', 0)
-            else:
-                member['attackswon'] = 0
-                member['defendswon'] = 0
-                member['useractivity'] = 0
-                member['xantaken'] = 0
+            # Weekly stats (7 days ago)
+            weekly_stats = fetch_player_stats(member['id'], stats_keys, week_ago, api_key)
+            
+            # Monthly stats (30 days ago)
+            monthly_stats = fetch_player_stats(member['id'], stats_keys, month_ago, api_key)
+            
+            # Store all three
+            member['current'] = current_stats
+            member['weekly'] = weekly_stats
+            member['monthly'] = monthly_stats
             
             time.sleep(0.7)  # Rate limit
             
-        except:
-            member['attackswon'] = 0
-            member['defendswon'] = 0
-            member['useractivity'] = 0
-            member['xantaken'] = 0
+        except Exception as e:
+            print(f"Error fetching stats for {member['name']}: {e}")
+            # Set empty stats
+            empty = {key: 0 for key in stats_keys}
+            member['current'] = empty
+            member['weekly'] = empty
+            member['monthly'] = empty
     
     return {
         'faction_id': faction_id,
         'members': member_list
     }
+
+def fetch_player_stats(player_id, stats_keys, timestamp, api_key):
+    """Fetch personalstats for a player at given timestamp"""
+    url = f"https://api.torn.com/user/{player_id}?selections=personalstats&stat={','.join(stats_keys)}&key={api_key}"
+    if timestamp:
+        url += f"&timestamp={timestamp}"
+    
+    data = fetch_url(url)
+    
+    if 'personalstats' in data:
+        return data['personalstats']
+    else:
+        return {key: 0 for key in stats_keys}
 
 def fetch_url(url):
     req = urllib.request.Request(url)
