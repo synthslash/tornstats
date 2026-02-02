@@ -48,15 +48,26 @@ class handler(BaseHTTPRequestHandler):
             raise Exception(f"Torn API Error: {members_data['error'].get('error', 'Unknown error')}")
         
         # Extract member IDs
-        members_dict = members_data.get('members', {})
-        member_list = []
-        
-        for member_id, member_info in members_dict.items():
-            member_list.append({
-                'id': int(member_id),
-                'name': member_info.get('name', 'Unknown'),
-                'level': member_info.get('level', 0)
-            })
+members_raw = members_data.get('members', {})
+member_list = []
+
+# Check if members is a dict or list
+if isinstance(members_raw, dict):
+    # v2 API returns dict: {"123": {...}, "456": {...}}
+    for member_id, member_info in members_raw.items():
+        member_list.append({
+            'id': int(member_id),
+            'name': member_info.get('name', 'Unknown'),
+            'level': member_info.get('level', 0)
+        })
+elif isinstance(members_raw, list):
+    # Some APIs return list: [{"id": 123, ...}, {"id": 456, ...}]
+    for member_info in members_raw:
+        member_list.append({
+            'id': int(member_info.get('id', 0)),
+            'name': member_info.get('name', 'Unknown'),
+            'level': member_info.get('level', 0)
+        })
         
         # Fetch stats for each member
         stats_keys = ['attackswon', 'defendswon', 'useractivity', 'xantaken', 'attackslost', 'defendslost']
