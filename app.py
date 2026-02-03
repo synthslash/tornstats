@@ -96,11 +96,10 @@ def fetch_faction_data(faction_id, api_key):
             # Current stats + profile (age ve faction_id için)
             current_data = fetch_player_data(member['id'], current_stats_keys, None, api_key)
             current_stats = current_data.get('personalstats', {key: 0 for key in current_stats_keys})
-            profile = current_data.get('profile', {})
             
-            # Age ve faction_id profile'dan al
-            member['age'] = profile.get('age', 0)
-            member['faction_id'] = profile.get('faction_id', 0)
+            # Age root level'da, faction_id faction object içinde
+            member['age'] = current_data.get('age', 0)
+            member['faction_id'] = current_data.get('faction', {}).get('faction_id', 0)
             
             # Weekly stats (7 gün önce) - sadece historical keys, sadece personalstats
             weekly_stats = fetch_player_stats(member['id'], historical_stats_keys, week_ago, api_key)
