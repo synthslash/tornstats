@@ -3,7 +3,6 @@ import json
 import urllib.request
 import urllib.error
 import time
-import math
 
 app = Flask(__name__, static_folder='.')
 
@@ -35,7 +34,6 @@ def analyze():
         if not faction_id or not api_key:
             return jsonify({'error': 'Missing faction_id or api_key'}), 400
         
-        # Fetch faction data
         result = fetch_faction_data(faction_id, api_key)
         
         response = jsonify(result)
@@ -72,12 +70,19 @@ def fetch_faction_data(faction_id, api_key):
                 'level': info.get('level', 0)
             })
     
-    # Stats keys
-    stats_keys = [
+    # Current stats: tüm metrikler (max 15)
+    current_stats_keys = [
         'attackswon', 'attackslost', 'defendswon', 'defendslost', 'rankedwarhits',
         'xantaken', 'boostersused', 'energydrinkused', 'statenhancersused',
         'useractivity', 'refills', 'nerverefills', 'activestreak',
         'organisedcrimes', 'criminaloffenses'
+    ]
+
+    # Weekly/Monthly stats: max 10 metrik (refills, nerverefills, organisedcrimes, activestreak çıkarıldı)
+    historical_stats_keys = [
+        'attackswon', 'attackslost', 'defendswon', 'defendslost', 'rankedwarhits',
+        'xantaken', 'boostersused', 'energydrinkused', 'statenhancersused',
+        'useractivity', 'criminaloffenses'
     ]
     
     # Calculate timestamps
@@ -88,16 +93,19 @@ def fetch_faction_data(faction_id, api_key):
     # Fetch stats for each member
     for member in member_list:
         try:
-            # Current stats
-            current_stats = fetch_player_stats(member['id'], stats_keys, None, api_key)
+            # Current stats (age ve faction_id dahil)
+            current_stats = fetch_player_stats(member['id'], current_stats_keys, None, api_key)
             
-            # Weekly stats (7 days ago)
-            weekly_stats = fetch_player_stats(member['id'], stats_keys, week_ago, api_key)
+            # Age ve faction_id current'tan al
+            member['age'] = current_stats.get('age', 0)
+            member['faction_id'] = current_stats.get('faction_id', 0)
             
-            # Monthly stats (30 days ago)
-            monthly_stats = fetch_player_stats(member['id'], stats_keys, month_ago, api_key)
+            # Weekly stats (7 gün önce) - sadece historical keys
+            weekly_stats = fetch_player_stats(member['id'], historical_stats_keys, week_ago, api_key)
             
-            # Store all three
+            # Monthly stats (30 gün önce) - sadece historical keys
+            monthly_stats = fetch_player_stats(member['id'], historical_stats_keys, month_ago, api_key)
+            
             member['current'] = current_stats
             member['weekly'] = weekly_stats
             member['monthly'] = monthly_stats
@@ -106,11 +114,13 @@ def fetch_faction_data(faction_id, api_key):
             
         except Exception as e:
             print(f"Error fetching stats for {member['name']}: {e}")
-            # Set empty stats
-            empty = {key: 0 for key in stats_keys}
-            member['current'] = empty
-            member['weekly'] = empty
-            member['monthly'] = empty
+            empty_current = {key: 0 for key in current_stats_keys}
+            empty_historical = {key: 0 for key in historical_stats_keys}
+            member['age'] = 0
+            member['faction_id'] = 0
+            member['current'] = empty_current
+            member['weekly'] = empty_historical
+            member['monthly'] = empty_historical
     
     return {
         'faction_id': faction_id,
