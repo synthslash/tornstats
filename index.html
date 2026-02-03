@@ -114,7 +114,7 @@
         let currentSort = { column: null, ascending: false };
 
         // Columns that are HIDDEN in weekly/monthly mode
-        const hiddenInDelta = ['criminaloffenses', 'nerverefills', 'activestreak', 'organisedcrimes'];
+        const hiddenInDelta = ['criminaloffenses', 'nerverefills', 'activestreak', 'organisedcrimes', 'statenhancersused'];
 
         // All column definitions
         const allColumns = [
@@ -132,7 +132,7 @@
             { key: 'xan_daily',           label: 'Xan/Daily',        type: 'deltaOnly', format: (v) => v.toFixed(1) },
             { key: 'boostersused',        label: 'Boosters Used',    type: 'stat',  format: formatNumber },
             { key: 'energydrinkused',     label: 'Energy Drinks',    type: 'stat',  format: formatNumber },
-            { key: 'statenhancersused',   label: 'Stat Enhancers',   type: 'stat',  format: formatNumber },
+            { key: 'statenhancersused',   label: 'Stat Enhancers',   type: 'stat',  format: formatNumber, hideInDelta: true },
             { key: 'useractivity',        label: 'Activity',         type: 'stat',  format: formatActivity },
             { key: 'refills',             label: 'Refills',          type: 'stat',  format: formatNumber },
             { key: 'nerverefills',        label: 'Nerve Refills',    type: 'stat',  format: formatNumber, hideInDelta: true },
