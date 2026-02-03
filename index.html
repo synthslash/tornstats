@@ -134,6 +134,7 @@
             { key: 'energydrinkused',     label: 'Energy Drinks',    type: 'stat',  format: formatNumber },
             { key: 'statenhancersused',   label: 'Stat Enhancers',   type: 'stat',  format: formatNumber, hideInDelta: true },
             { key: 'useractivity',        label: 'Activity',         type: 'stat',  format: formatActivity },
+            { key: 'daily_avg_activity',  label: 'Daily Avr. Activity', type: 'deltaOnly', format: formatActivity },
             { key: 'refills',             label: 'Refills',          type: 'stat',  format: formatNumber },
             { key: 'nerverefills',        label: 'Nerve Refills',    type: 'stat',  format: formatNumber, hideInDelta: true },
             { key: 'activestreak',        label: 'Active Streak',    type: 'stat',  format: formatNumber, hideInDelta: true },
@@ -275,6 +276,16 @@
                         return;
                     }
 
+                    // Daily Avg Activity (only in delta modes)
+                    if (col.key === 'daily_avg_activity') {
+                        const current = member.current?.useractivity || 0;
+                        const past = (currentViewMode === 'weekly' ? member.weekly : member.monthly)?.useractivity || 0;
+                        const delta = current - past;
+                        const dailyAvg = Math.floor(delta / divisor);
+                        cell.innerHTML = `<span class="${dailyAvg >= 0 ? 'text-green-400' : 'text-red-400'}">${dailyAvg >= 0 ? '+' : ''}${formatActivity(Math.abs(dailyAvg))}</span>`;
+                        return;
+                    }
+
                     // Stat columns
                     if (currentViewMode === 'overall') {
                         const value = member.current?.[col.key] || 0;
@@ -318,6 +329,14 @@
 
                     const curB = b.current?.xantaken || 0;
                     const pastB = (currentViewMode === 'weekly' ? b.weekly : b.monthly)?.xantaken || 0;
+                    valB = (curB - pastB) / divisor;
+                } else if (col.key === 'daily_avg_activity') {
+                    const curA = a.current?.useractivity || 0;
+                    const pastA = (currentViewMode === 'weekly' ? a.weekly : a.monthly)?.useractivity || 0;
+                    valA = (curA - pastA) / divisor;
+
+                    const curB = b.current?.useractivity || 0;
+                    const pastB = (currentViewMode === 'weekly' ? b.weekly : b.monthly)?.useractivity || 0;
                     valB = (curB - pastB) / divisor;
                 } else {
                     if (currentViewMode === 'overall') {
@@ -373,6 +392,12 @@
                         const cur = m.current?.xantaken || 0;
                         const past = (currentViewMode === 'weekly' ? m.weekly : m.monthly)?.xantaken || 0;
                         return ((cur - past) / divisor).toFixed(1);
+                    }
+
+                    if (col.key === 'daily_avg_activity') {
+                        const cur = m.current?.useractivity || 0;
+                        const past = (currentViewMode === 'weekly' ? m.weekly : m.monthly)?.useractivity || 0;
+                        return Math.floor((cur - past) / divisor);
                     }
 
                     if (currentViewMode === 'overall') {
