@@ -114,7 +114,7 @@
         let currentSort = { column: null, ascending: false };
 
         // Columns that are HIDDEN in weekly/monthly mode
-        const hiddenInDelta = ['refills', 'nerverefills', 'activestreak', 'organisedcrimes'];
+        const hiddenInDelta = ['criminaloffenses', 'nerverefills', 'activestreak', 'organisedcrimes'];
 
         // All column definitions
         const allColumns = [
@@ -134,11 +134,11 @@
             { key: 'energydrinkused',     label: 'Energy Drinks',    type: 'stat',  format: formatNumber },
             { key: 'statenhancersused',   label: 'Stat Enhancers',   type: 'stat',  format: formatNumber },
             { key: 'useractivity',        label: 'Activity',         type: 'stat',  format: formatActivity },
-            { key: 'refills',             label: 'Refills',          type: 'stat',  format: formatNumber, hideInDelta: true },
+            { key: 'refills',             label: 'Refills',          type: 'stat',  format: formatNumber },
             { key: 'nerverefills',        label: 'Nerve Refills',    type: 'stat',  format: formatNumber, hideInDelta: true },
             { key: 'activestreak',        label: 'Active Streak',    type: 'stat',  format: formatNumber, hideInDelta: true },
             { key: 'organisedcrimes',     label: 'OCs',              type: 'stat',  format: formatNumber, hideInDelta: true },
-            { key: 'criminaloffenses',    label: 'Crimes',           type: 'stat',  format: formatNumber }
+            { key: 'criminaloffenses',    label: 'Crimes',           type: 'stat',  format: formatNumber, hideInDelta: true }
         ];
 
         // Get visible columns based on current view mode
