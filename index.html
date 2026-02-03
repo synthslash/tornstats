@@ -11,7 +11,7 @@
         <!-- Header -->
         <div class="text-center mb-12 relative">
             <h1 class="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
-                🎯 NC Intel Tool
+                NC Intel Tool
             </h1>
             <p class="text-gray-400">Analyze factions' performance</p>
             
@@ -89,7 +89,7 @@
 
                 <button onclick="analyzeHistoricalData()" 
                         class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-lg transition duration-200 transform hover:scale-105 text-lg">
-                    🚀 Analyze Historical Data
+                    Analyze Historical Data
                 </button>
                 
                 <button onclick="closeAdminPanel()" 
@@ -119,13 +119,13 @@
                             class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 text-white">
                         <option value="all">📋 All Data</option>
                         <option value="lite">⭐ Lite Tracker</option>
-                        <option value="battle">⚔️ Battle Stats</option>
-                        <option value="activity">📊 Activity Stats</option>
-                        <option value="drugs">💊 Drugs & Items</option>
-                        <option value="travel">✈️ Travel Stats</option>
-                        <option value="gym">💪 GYM Training</option>
-                        <option value="faction">🏛️ Faction Info</option>
-                        <option value="crime">🔫 Crime Stats</option>
+                        <option value="battle">Battle Stats</option>
+                        <option value="activity">Activity Stats</option>
+                        <option value="drugs">Drugs & Items</option>
+                        <option value="travel">Travel Stats</option>
+                        <option value="gym">GYM Training</option>
+                        <option value="faction">Faction Info</option>
+                        <option value="crime">Crime Stats</option>
                     </select>
                     <button onclick="downloadAdminExcel()" 
                             class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition">
@@ -449,6 +449,11 @@
             return val === 1 ? 'Yes' : 'No';
         }
 
+        function formatEfficiency(val) {
+            if (!val || val === '-') return '-';
+            return (val * 100).toFixed(1) + '%';
+        }
+
         // Column definitions with filter categories
         const allAdminColumns = {
             // Always visible
@@ -472,7 +477,7 @@
                 { key: 'bestactivestreak', label: 'Best Active Streak', format: formatNumber },
                 { key: 'activestreak', label: 'Active Streak', format: formatNumber },
                 { key: 'Activity Score', label: 'Activity Score', format: v => v || '-' },
-                { key: 'Activity Efficiency', label: 'Activity Efficiency', format: v => v || '-' },
+                { key: 'Activity Efficiency', label: 'Activity Efficiency', format: formatEfficiency },
                 { key: 'xantaken', label: 'Xan Taken', format: formatNumber },
                 { key: 'Xan Ratio', label: 'Xan Ratio', format: v => typeof v === 'number' ? v.toFixed(3) : v },
                 { key: 'refills', label: 'Refills', format: formatNumber },
@@ -515,6 +520,7 @@
                 { key: 'Xan Ratio', label: 'Xan Ratio', format: v => typeof v === 'number' ? v.toFixed(3) : v },
                 { key: 'exttaken', label: 'Ext Taken', format: formatNumber },
                 { key: 'overdosed', label: 'Overdosed', format: formatNumber },
+                { key: 'organisedcrimes', label: 'OC', format: formatNumber },
                 { key: 'Energy on GYM', label: 'Energy on GYM', format: formatNumber },
                 { key: 'Daily Avr. Activity', label: 'Daily Avr. Activity', format: formatActivity }
             ],
@@ -527,10 +533,11 @@
             ],
             activity: [
                 { key: 'useractivity', label: 'Activity', format: formatActivity },
+                { key: 'Daily Avr. Activity', label: 'Daily Avr. Activity', format: formatActivity },
                 { key: 'bestactivestreak', label: 'Best Active Streak', format: formatNumber },
                 { key: 'activestreak', label: 'Active Streak', format: formatNumber },
                 { key: 'Activity Score', label: 'Activity Score', format: v => v || '-' },
-                { key: 'Activity Efficiency', label: 'Activity Efficiency', format: v => v || '-' }
+                { key: 'Activity Efficiency', label: 'Activity Efficiency', format: formatEfficiency }
             ],
             drugs: [
                 { key: 'xantaken', label: 'Xan Taken', format: formatNumber },
