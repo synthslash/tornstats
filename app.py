@@ -43,6 +43,30 @@ def analyze():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Snapshot proxy endpoint (to bypass CORS)
+@app.route('/api/snapshot/<date>', methods=['GET', 'OPTIONS'])
+def get_snapshot(date):
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        return response
+    
+    try:
+        # Fetch from Google Cloud Storage
+        snapshot_url = f"https://storage.googleapis.com/neoncartel-stats/{date}.json"
+        snapshot_data = fetch_url(snapshot_url)
+        
+        response = jsonify(snapshot_data)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+        
+    except urllib.error.HTTPError as e:
+        return jsonify({'error': f'Snapshot not found for {date}'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 def fetch_faction_data(faction_id, api_key):
     # Fetch members
     members_url = f"https://api.torn.com/v2/faction/{faction_id}/members?key={api_key}"
