@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torn Faction Stats</title>
+    <title>NC Intel Tool</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 min-h-screen text-white">
@@ -11,7 +11,7 @@
         <!-- Header -->
         <div class="text-center mb-12">
             <h1 class="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
-                🎯 Torn Faction Stats
+                🎯 NC Intel Tool
             </h1>
             <p class="text-gray-400">Analyze your faction's performance</p>
         </div>
@@ -238,7 +238,7 @@
             const cols = getVisibleColumns();
             const headerRow = document.getElementById('tableHeader');
             headerRow.innerHTML = '<tr>' + cols.map((col, idx) =>
-                `<th class="px-4 py-3 text-left cursor-pointer hover:text-purple-400 whitespace-nowrap select-none" onclick="sortTable(${idx})">
+                `<th class="px-2 py-3 text-left cursor-pointer hover:text-purple-400 select-none" style="min-width:60px; max-width:90px;" onclick="sortTable(${idx})">
                     ${col.label} <span class="text-xs">▼</span>
                 </th>`
             ).join('') + '</tr>';
@@ -257,7 +257,7 @@
 
                 cols.forEach(col => {
                     const cell = row.insertCell();
-                    cell.className = 'px-4 py-3 whitespace-nowrap';
+                    cell.className = 'px-2 py-3';
 
                     // Base columns (id, name, level, age, faction_id)
                     if (col.type === 'base') {

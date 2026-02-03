@@ -93,17 +93,19 @@ def fetch_faction_data(faction_id, api_key):
     # Fetch stats for each member
     for member in member_list:
         try:
-            # Current stats (age ve faction_id dahil)
-            current_stats = fetch_player_stats(member['id'], current_stats_keys, None, api_key)
+            # Current stats + profile (age ve faction_id için)
+            current_data = fetch_player_data(member['id'], current_stats_keys, None, api_key)
+            current_stats = current_data.get('personalstats', {key: 0 for key in current_stats_keys})
+            profile = current_data.get('profile', {})
             
-            # Age ve faction_id current'tan al
-            member['age'] = current_stats.get('age', 0)
-            member['faction_id'] = current_stats.get('faction_id', 0)
+            # Age ve faction_id profile'dan al
+            member['age'] = profile.get('age', 0)
+            member['faction_id'] = profile.get('faction_id', 0)
             
-            # Weekly stats (7 gün önce) - sadece historical keys
+            # Weekly stats (7 gün önce) - sadece historical keys, sadece personalstats
             weekly_stats = fetch_player_stats(member['id'], historical_stats_keys, week_ago, api_key)
             
-            # Monthly stats (30 gün önce) - sadece historical keys
+            # Monthly stats (30 gün önce) - sadece historical keys, sadece personalstats
             monthly_stats = fetch_player_stats(member['id'], historical_stats_keys, month_ago, api_key)
             
             member['current'] = current_stats
@@ -127,8 +129,17 @@ def fetch_faction_data(faction_id, api_key):
         'members': member_list
     }
 
+def fetch_player_data(player_id, stats_keys, timestamp, api_key):
+    """Fetch profile + personalstats for a player (current data için)"""
+    url = f"https://api.torn.com/user/{player_id}?selections=profile,personalstats&stat={','.join(stats_keys)}&key={api_key}"
+    if timestamp:
+        url += f"&timestamp={timestamp}"
+    
+    data = fetch_url(url)
+    return data  # { 'profile': {...}, 'personalstats': {...} }
+
 def fetch_player_stats(player_id, stats_keys, timestamp, api_key):
-    """Fetch personalstats for a player at given timestamp"""
+    """Fetch sadece personalstats (weekly/monthly için)"""
     url = f"https://api.torn.com/user/{player_id}?selections=personalstats&stat={','.join(stats_keys)}&key={api_key}"
     if timestamp:
         url += f"&timestamp={timestamp}"
