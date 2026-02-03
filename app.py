@@ -75,14 +75,14 @@ def fetch_faction_data(faction_id, api_key):
         'attackswon', 'attackslost', 'defendswon', 'defendslost', 'rankedwarhits',
         'xantaken', 'boostersused', 'energydrinkused', 'statenhancersused',
         'useractivity', 'refills', 'nerverefills', 'activestreak',
-        'organisedcrimes', 'criminaloffenses'
+        'organisedcrimes'
     ]
 
     # Weekly/Monthly stats: max 10 metrik (refills, nerverefills, organisedcrimes, activestreak çıkarıldı)
     historical_stats_keys = [
         'attackswon', 'attackslost', 'defendswon', 'defendslost', 'rankedwarhits',
         'xantaken', 'boostersused', 'energydrinkused', 'statenhancersused',
-        'useractivity', 'criminaloffenses'
+        'useractivity'
     ]
     
     # Calculate timestamps
