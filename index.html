@@ -90,6 +90,10 @@
                         class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition">
                     📥 Download Excel
                 </button>
+                <button onclick="openComparison()" 
+                        class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                    ⚔️ Comparison
+                </button>
                 <input type="text" id="searchBox" placeholder="Search members..." 
                        onkeyup="filterTable()"
                        class="flex-1 min-w-[200px] px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500">
@@ -438,6 +442,16 @@
             document.getElementById('viewMode').value = 'overall';
             document.getElementById('results').classList.add('hidden');
             document.getElementById('inputForm').classList.remove('hidden');
+        }
+
+        function openComparison() {
+            if (!factionData) {
+                alert('No faction data available for comparison');
+                return;
+            }
+            // Store faction data in localStorage for comparison page
+            localStorage.setItem('analyzedFactionData', JSON.stringify(factionData));
+            window.location.href = 'comparison.html';
         }
     </script>
 </body>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faction Comparison - NC Intel Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 min-h-screen text-white">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+                ⚔️ Faction Comparison
+            </h1>
+            <p class="text-gray-400">Compare your faction with Neon Cartel</p>
+        </div>
+
+        <!-- Time Range Selector -->
+        <div class="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-2xl p-8 mb-8">
+            <div class="mb-6">
+                <label class="block text-lg font-medium mb-4">Select Time Range:</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="flex items-center space-x-3 bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition">
+                        <input type="radio" name="comparisonRange" value="7" checked class="w-5 h-5">
+                        <span class="font-medium">📊 Last 7 Days</span>
+                    </label>
+                    <label class="flex items-center space-x-3 bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition">
+                        <input type="radio" name="comparisonRange" value="30" class="w-5 h-5">
+                        <span class="font-medium">📈 Last 30 Days</span>
+                    </label>
+                </div>
+            </div>
+
+            <button onclick="runComparison()" 
+                    class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-lg transition duration-200 transform hover:scale-105 text-lg">
+                🔍 Run Comparison
+            </button>
+            
+            <a href="index.html" 
+               class="block w-full mt-4 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition text-center">
+                ← Back to Analyzer
+            </a>
+        </div>
+
+        <!-- Loading -->
+        <div id="compLoading" class="hidden text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4"></div>
+            <p class="text-xl">Loading comparison data...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="compError" class="hidden max-w-4xl mx-auto bg-red-900/50 border border-red-500 rounded-lg p-6 mb-8">
+            <h3 class="text-xl font-bold mb-2">❌ Error</h3>
+            <p id="compErrorMessage" class="text-red-200"></p>
+        </div>
+
+        <!-- Results -->
+        <div id="compResults" class="hidden">
+            <!-- Faction Names -->
+            <div class="grid grid-cols-2 gap-4 mb-8 max-w-4xl mx-auto">
+                <div class="bg-gradient-to-r from-orange-600 to-orange-500 rounded-lg p-6 text-center">
+                    <h2 class="text-2xl font-bold" id="analyzedFactionName">Analyzed Faction</h2>
+                    <p class="text-sm opacity-90" id="analyzedFactionId">ID: -</p>
+                </div>
+                <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-6 text-center">
+                    <h2 class="text-2xl font-bold">Neon Cartel</h2>
+                    <p class="text-sm opacity-90">ID: 41419</p>
+                </div>
+            </div>
+
+            <!-- Comparison Bars -->
+            <div class="max-w-6xl mx-auto space-y-6" id="comparisonBars">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const NEON_CARTEL_ID = '41419';
+        let analyzedFactionData = null;
+        let neonCartelData = null;
+
+        // Check if we have faction data from localStorage
+        window.addEventListener('load', () => {
+            const storedData = localStorage.getItem('analyzedFactionData');
+            if (!storedData) {
+                showError('No faction data found. Please analyze a faction first from the main page.');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 3000);
+            }
+        });
+
+        async function runComparison() {
+            const storedData = localStorage.getItem('analyzedFactionData');
+            if (!storedData) {
+                showError('No faction data found. Please analyze a faction first.');
+                return;
+            }
+
+            analyzedFactionData = JSON.parse(storedData);
+            const days = parseInt(document.querySelector('input[name="comparisonRange"]:checked').value);
+
+            document.getElementById('compError').classList.add('hidden');
+            document.getElementById('compResults').classList.add('hidden');
+            document.getElementById('compLoading').classList.remove('hidden');
+
+            try {
+                // Fetch Neon Cartel historical data
+                const today = new Date();
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                const endDate = formatDate(yesterday);
+                
+                const startDate = new Date(yesterday);
+                startDate.setDate(startDate.getDate() - days);
+                const startDateStr = formatDate(startDate);
+
+                const endData = await fetchSnapshot(endDate);
+                const startData = await fetchSnapshot(startDateStr);
+
+                if (!endData || !startData) {
+                    throw new Error('Could not fetch Neon Cartel historical data');
+                }
+
+                neonCartelData = processComparisonData(endData, startData, days);
+                const analyzedData = processAnalyzedData(analyzedFactionData, days);
+
+                displayComparison(analyzedData, neonCartelData, days);
+
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                document.getElementById('compLoading').classList.add('hidden');
+            }
+        }
+
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        async function fetchSnapshot(date) {
+            const url = `/api/snapshot/${date}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) return null;
+                return await response.json();
+            } catch (error) {
+                console.error('Snapshot fetch error:', error);
+                return null;
+            }
+        }
+
+        function processComparisonData(endData, startData, days) {
+            const members = Object.keys(endData).filter(id => startData[id]);
+            
+            let totalAttacksWon = 0;
+            let totalRWHits = 0;
+            let totalXan = 0;
+            let totalEnergyDrinks = 0;
+            let totalRefills = 0;
+            let totalActivity = 0;
+            let xanDailyAbove1_5 = 0;
+            let activityAbove15min = 0;
+
+            members.forEach(id => {
+                const end = endData[id];
+                const start = startData[id];
+
+                totalAttacksWon += (end.attackswon || 0) - (start.attackswon || 0);
+                totalRWHits += (end.rankedwarhits || 0) - (start.rankedwarhits || 0);
+                totalXan += (end.xantaken || 0) - (start.xantaken || 0);
+                totalEnergyDrinks += (end.energydrinkused || 0) - (start.energydrinkused || 0);
+                totalRefills += (end.refills || 0) - (start.refills || 0);
+                
+                const activityDelta = (end.useractivity || 0) - (start.useractivity || 0);
+                totalActivity += activityDelta;
+
+                // Xan Daily check
+                const xanDelta = (end.xantaken || 0) - (start.xantaken || 0);
+                const xanDaily = xanDelta / days;
+                if (xanDaily >= 1.5) xanDailyAbove1_5++;
+
+                // Activity >= 15min check
+                const dailyActivity = activityDelta / days;
+                if (dailyActivity >= 900) activityAbove15min++; // 15min = 900 seconds
+            });
+
+            return {
+                totalPlayers: members.length,
+                attacksWon: totalAttacksWon,
+                rwHits: totalRWHits,
+                xanTaken: totalXan,
+                xanDaily: totalXan / days / members.length,
+                xanDailyAbove1_5: xanDailyAbove1_5,
+                energyDrinks: totalEnergyDrinks,
+                refills: totalRefills,
+                dailyAvrActivity: totalActivity / days / members.length,
+                activityAbove15min: activityAbove15min
+            };
+        }
+
+        function processAnalyzedData(factionData, days) {
+            const members = factionData.members;
+            const totalPlayers = members.length;
+
+            let totalAttacksWon = 0;
+            let totalRWHits = 0;
+            let totalXan = 0;
+            let totalEnergyDrinks = 0;
+            let totalRefills = 0;
+            let totalActivity = 0;
+            let xanDailyAbove1_5 = 0;
+            let activityAbove15min = 0;
+
+            members.forEach(m => {
+                const current = m.current || {};
+                const past = days === 7 ? (m.weekly || {}) : (m.monthly || {});
+
+                totalAttacksWon += (current.attackswon || 0) - (past.attackswon || 0);
+                totalRWHits += (current.rankedwarhits || 0) - (past.rankedwarhits || 0);
+                totalXan += (current.xantaken || 0) - (past.xantaken || 0);
+                totalEnergyDrinks += (current.energydrinkused || 0) - (past.energydrinkused || 0);
+                totalRefills += (current.refills || 0) - (past.refills || 0);
+                
+                const activityDelta = (current.useractivity || 0) - (past.useractivity || 0);
+                totalActivity += activityDelta;
+
+                // Xan Daily check
+                const xanDelta = (current.xantaken || 0) - (past.xantaken || 0);
+                const xanDaily = xanDelta / days;
+                if (xanDaily >= 1.5) xanDailyAbove1_5++;
+
+                // Activity >= 15min check
+                const dailyActivity = activityDelta / days;
+                if (dailyActivity >= 900) activityAbove15min++;
+            });
+
+            return {
+                totalPlayers: totalPlayers,
+                attacksWon: totalAttacksWon,
+                rwHits: totalRWHits,
+                xanTaken: totalXan,
+                xanDaily: totalXan / days / totalPlayers,
+                xanDailyAbove1_5: xanDailyAbove1_5,
+                energyDrinks: totalEnergyDrinks,
+                refills: totalRefills,
+                dailyAvrActivity: totalActivity / days / totalPlayers,
+                activityAbove15min: activityAbove15min
+            };
+        }
+
+        function displayComparison(analyzed, neonCartel, days) {
+            // Update faction names
+            document.getElementById('analyzedFactionName').textContent = analyzedFactionData.faction_id || 'Analyzed Faction';
+            document.getElementById('analyzedFactionId').textContent = `ID: ${analyzedFactionData.faction_id || 'Unknown'}`;
+
+            const metrics = [
+                { label: 'Total Players', aVal: analyzed.totalPlayers, ncVal: neonCartel.totalPlayers, format: v => v },
+                { label: 'Attacks Won', aVal: analyzed.attacksWon, ncVal: neonCartel.attacksWon, format: formatNumber },
+                { label: 'Ranked War Hits', aVal: analyzed.rwHits, ncVal: neonCartel.rwHits, format: formatNumber },
+                { label: 'Xan Taken', aVal: analyzed.xanTaken, ncVal: neonCartel.xanTaken, format: formatNumber },
+                { label: 'Xan Daily (Avg)', aVal: analyzed.xanDaily, ncVal: neonCartel.xanDaily, format: v => v.toFixed(2) },
+                { label: 'Xan Daily ≥1.5 (Players)', aVal: analyzed.xanDailyAbove1_5, ncVal: neonCartel.xanDailyAbove1_5, format: v => v },
+                { label: 'Energy Drinks', aVal: analyzed.energyDrinks, ncVal: neonCartel.energyDrinks, format: formatNumber },
+                { label: 'Refills', aVal: analyzed.refills, ncVal: neonCartel.refills, format: formatNumber },
+                { label: 'Daily Avr. Activity', aVal: analyzed.dailyAvrActivity, ncVal: neonCartel.dailyAvrActivity, format: formatTime },
+                { label: 'Activity ≥15min (Players)', aVal: analyzed.activityAbove15min, ncVal: neonCartel.activityAbove15min, format: v => v }
+            ];
+
+            const barsHTML = metrics.map(metric => {
+                const maxVal = Math.max(metric.aVal, metric.ncVal);
+                const aPercent = maxVal > 0 ? (metric.aVal / maxVal * 100) : 0;
+                const ncPercent = maxVal > 0 ? (metric.ncVal / maxVal * 100) : 0;
+
+                return `
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <h3 class="text-xl font-bold mb-4 text-center">${metric.label}</h3>
+                        <div class="space-y-3">
+                            <!-- Analyzed Faction Bar -->
+                            <div>
+                                <div class="flex justify-between mb-1 text-sm">
+                                    <span class="text-orange-400">Analyzed Faction</span>
+                                    <span class="font-bold">${metric.format(metric.aVal)}</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-8 overflow-hidden">
+                                    <div class="bg-gradient-to-r from-orange-600 to-orange-400 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500" 
+                                         style="width: ${aPercent}%">
+                                        ${aPercent > 15 ? metric.format(metric.aVal) : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Neon Cartel Bar -->
+                            <div>
+                                <div class="flex justify-between mb-1 text-sm">
+                                    <span class="text-purple-400">Neon Cartel</span>
+                                    <span class="font-bold">${metric.format(metric.ncVal)}</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-8 overflow-hidden">
+                                    <div class="bg-gradient-to-r from-purple-600 to-pink-600 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500" 
+                                         style="width: ${ncPercent}%">
+                                        ${ncPercent > 15 ? metric.format(metric.ncVal) : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('comparisonBars').innerHTML = barsHTML;
+            document.getElementById('compResults').classList.remove('hidden');
+        }
+
+        function formatNumber(num) {
+            return num.toLocaleString();
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}m ${secs}s`;
+        }
+
+        function showError(message) {
+            document.getElementById('compErrorMessage').textContent = message;
+            document.getElementById('compError').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
