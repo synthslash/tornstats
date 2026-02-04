@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NC Human Resources - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 min-h-screen text-white">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+                👤 NC Human Resources
+            </h1>
+            <p class="text-gray-400">Historical Data Analysis</p>
+        </div>
+
+        <!-- Login Modal -->
+        <div id="loginModal" class="max-w-md mx-auto bg-gray-800 rounded-lg p-8 mb-8 border border-purple-500">
+            <h2 class="text-2xl font-bold mb-6 text-center">🔐 Admin Authentication</h2>
+            <input type="password" id="adminPassword" placeholder="Enter admin password" 
+                   class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 mb-4"
+                   onkeypress="if(event.key==='Enter') checkPassword()">
+            <div id="loginError" class="hidden text-red-400 text-sm mb-4 text-center">❌ Incorrect password</div>
+            <div class="flex gap-4">
+                <button onclick="checkPassword()" 
+                        class="flex-1 bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-bold transition">
+                    Login
+                </button>
+                <a href="index.html" 
+                   class="flex-1 bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-lg font-bold transition text-center">
+                    Cancel
+                </a>
+            </div>
+        </div>
+
+        <!-- Admin Panel (hidden until login) -->
+        <div id="adminPanel" class="hidden">
+            <div class="max-w-6xl mx-auto bg-gray-800 rounded-lg shadow-2xl p-8 mb-8">
+                <!-- Time Range Selector -->
+                <div class="mb-6">
+                    <label class="block text-lg font-medium mb-4">Time Range:</label>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <label class="flex items-center space-x-3 bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition">
+                            <input type="radio" name="timeRange" value="current" checked onchange="updateDateInfo()" class="w-5 h-5">
+                            <span class="font-medium">📅 Current</span>
+                        </label>
+                        <label class="flex items-center space-x-3 bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition">
+                            <input type="radio" name="timeRange" value="7days" onchange="updateDateInfo()" class="w-5 h-5">
+                            <span class="font-medium">📊 Last 7 Days</span>
+                        </label>
+                        <label class="flex items-center space-x-3 bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition">
+                            <input type="radio" name="timeRange" value="30days" onchange="updateDateInfo()" class="w-5 h-5">
+                            <span class="font-medium">📈 Last 30 Days</span>
+                        </label>
+                        <label class="flex items-center space-x-3 bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition">
+                            <input type="radio" name="timeRange" value="custom" onchange="updateDateInfo()" class="w-5 h-5">
+                            <span class="font-medium">🗓️ Custom Range</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Custom Date Range -->
+                    <div id="customDateRange" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label class="block text-sm mb-2">From Date:</label>
+                            <input type="date" id="customFromDate" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-2">To Date:</label>
+                            <input type="date" id="customToDate" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500">
+                        </div>
+                    </div>
+                    
+                    <div id="dateInfo" class="text-sm text-gray-400 mt-2"></div>
+                </div>
+
+                <button onclick="analyzeHistoricalData()" 
+                        class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-lg transition duration-200 transform hover:scale-105 text-lg">
+                    🚀 Analyze Historical Data
+                </button>
+                
+                <a href="index.html"
+                   class="w-full mt-4 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition block text-center">
+                    ← Back to Live Analyzer
+                </a>
+            </div>
+
+            <!-- Loading -->
+            <div id="adminLoading" class="hidden text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4"></div>
+                <p class="text-xl">Fetching historical data...</p>
+                <p class="text-sm text-gray-400 mt-2">This may take a moment</p>
+            </div>
+
+            <!-- Error -->
+            <div id="adminError" class="hidden max-w-4xl mx-auto bg-red-900/50 border border-red-500 rounded-lg p-6 mb-8">
+                <h3 class="text-xl font-bold mb-2">❌ Error</h3>
+                <p id="adminErrorMessage" class="text-red-200"></p>
+            </div>
+
+            <!-- Results -->
+            <div id="adminResults" class="hidden">
+                <!-- Filter & Actions Bar -->
+                <div class="flex gap-4 mb-6 flex-wrap items-center bg-gray-800 p-4 rounded-lg">
+                    <select id="dataFilter" onchange="applyFilter()" 
+                            class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 text-white">
+                        <option value="all">📋 All Data</option>
+                        <option value="lite">⭐ Lite Tracker</option>
+                        <option value="battle">⚔️ Battle Stats</option>
+                        <option value="activity">📊 Activity Stats</option>
+                        <option value="drugs">💊 Drugs & Items</option>
+                        <option value="travel">✈️ Travel Stats</option>
+                        <option value="gym">💪 GYM Training</option>
+                        <option value="faction">🏛️ Faction Info</option>
+                        <option value="crime">🔫 Crime Stats</option>
+                    </select>
+                    <button onclick="downloadAdminExcel()" 
+                            class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                        📥 Download Excel
+                    </button>
+                    <input type="text" id="adminSearchBox" placeholder="Search members..." 
+                           onkeyup="filterAdminTable()"
+                           class="flex-1 min-w-[200px] px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <!-- Members Table -->
+                <div class="bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm" id="adminMembersTable">
+                            <thead class="bg-gray-900" id="adminTableHeader"></thead>
+                            <tbody id="adminTableBody" class="divide-y divide-gray-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_PASSWORD = 'neonadmin';
+        let historicalData = null;
+        let currentFilter = 'all';
+        let currentSort = { column: null, ascending: false };
+
+        function checkPassword() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+                updateDateInfo();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+                document.getElementById('adminPassword').value = '';
+                document.getElementById('adminPassword').focus();
+            }
+        }
+
+        function updateDateInfo() {
+            const selected = document.querySelector('input[name="timeRange"]:checked').value;
+            const dateInfo = document.getElementById('dateInfo');
+            const customRange = document.getElementById('customDateRange');
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            if (selected === 'custom') {
+                customRange.classList.remove('hidden');
+                dateInfo.textContent = '🗓️ Select your custom date range above';
+            } else {
+                customRange.classList.add('hidden');
+            }
+            
+            let info = '';
+            if (selected === 'current') {
+                info = `📅 Will show snapshot from: ${formatDate(yesterday)}`;
+            } else if (selected === '7days') {
+                const weekAgo = new Date(yesterday);
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                info = `📊 Will compare: ${formatDate(yesterday)} vs ${formatDate(weekAgo)} (7 days delta)`;
+            } else if (selected === '30days') {
+                const monthAgo = new Date(yesterday);
+                monthAgo.setDate(monthAgo.getDate() - 30);
+                info = `📈 Will compare: ${formatDate(yesterday)} vs ${formatDate(monthAgo)} (30 days delta)`;
+            } else if (selected === 'custom') {
+                info = '🗓️ Select your custom date range above';
+            }
+            
+            dateInfo.textContent = info;
+        }
+
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        async function analyzeHistoricalData() {
+            const selected = document.querySelector('input[name="timeRange"]:checked').value;
+            let endDate, startDate, daysDiff;
+            
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            if (selected === 'current') {
+                endDate = formatDate(yesterday);
+                startDate = null;
+                daysDiff = 0;
+            } else if (selected === '7days') {
+                endDate = formatDate(yesterday);
+                const weekAgo = new Date(yesterday);
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                startDate = formatDate(weekAgo);
+                daysDiff = 7;
+            } else if (selected === '30days') {
+                endDate = formatDate(yesterday);
+                const monthAgo = new Date(yesterday);
+                monthAgo.setDate(monthAgo.getDate() - 30);
+                startDate = formatDate(monthAgo);
+                daysDiff = 30;
+            } else if (selected === 'custom') {
+                const from = document.getElementById('customFromDate').value;
+                const to = document.getElementById('customToDate').value;
+                
+                if (!from || !to) {
+                    showAdminError('Please select both dates for custom range');
+                    return;
+                }
+                
+                startDate = from;
+                endDate = to;
+                const d1 = new Date(from);
+                const d2 = new Date(to);
+                daysDiff = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
+                
+                if (daysDiff <= 0) {
+                    showAdminError('End date must be after start date');
+                    return;
+                }
+            }
+            
+            document.getElementById('adminError').classList.add('hidden');
+            document.getElementById('adminResults').classList.add('hidden');
+            document.getElementById('adminLoading').classList.remove('hidden');
+            
+            try {
+                const endData = await fetchSnapshot(endDate);
+                
+                if (!endData) {
+                    throw new Error(`Snapshot for ${endDate} not found. Please select another date.`);
+                }
+                
+                let startData = null;
+                if (startDate) {
+                    startData = await fetchSnapshot(startDate);
+                    if (!startData) {
+                        throw new Error(`Snapshot for ${startDate} not found. Please select another date.`);
+                    }
+                }
+                
+                historicalData = processHistoricalData(endData, startData, daysDiff);
+                displayHistoricalResults(historicalData, selected !== 'current', daysDiff);
+                
+            } catch (error) {
+                showAdminError(error.message);
+            } finally {
+                document.getElementById('adminLoading').classList.add('hidden');
+            }
+        }
+
+        async function fetchSnapshot(date) {
+            const url = `/api/snapshot/${date}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) return null;
+                return await response.json();
+            } catch (error) {
+                console.error('Snapshot fetch error:', error);
+                return null;
+            }
+        }
+
+        function processHistoricalData(endData, startData, daysDiff) {
+            const members = [];
+            const memberIds = startData 
+                ? Object.keys(endData).filter(id => startData[id]) 
+                : Object.keys(endData);
+            
+            memberIds.forEach(id => {
+                const endMember = endData[id];
+                const startMember = startData ? startData[id] : null;
+                
+                const member = { id: id, ...endMember };
+                
+                if (startMember && daysDiff > 0) {
+                    member.delta = {};
+                    member.daysDiff = daysDiff;
+                    
+                    const numericFields = [
+                        'xantaken', 'exttaken', 'energydrinkused', 'refills', 'statenhancersused',
+                        'attackswon', 'attackslost', 'attacksassisted', 'overdosed', 'boostersused',
+                        'criminaloffenses', 'rankedwarhits', 'candyused', 'alcoholused', 'useractivity',
+                        'organisedcrimes', 'Energy on STR', 'Energy on DEX', 'Energy on DEF', 'Energy on SPD',
+                        'traveltimes', 'itemsboughtabroad', 'argtravel', 'mextravel', 'dubtravel',
+                        'hawtravel', 'japtravel', 'lontravel', 'soutravel', 'switravel', 
+                        'chitravel', 'cantravel', 'caytravel'
+                    ];
+                    
+                    numericFields.forEach(field => {
+                        const endVal = endMember[field] || 0;
+                        const startVal = startMember[field] || 0;
+                        member.delta[field] = endVal - startVal;
+                    });
+                    
+                    member.delta['Xan Ratio'] = member.delta.xantaken / daysDiff;
+                    member.delta['Daily Avr. Activity'] = member.delta.useractivity / daysDiff;
+                } else {
+                    member['Daily Avr. Activity'] = member.useractivity / member.age;
+                }
+                
+                const str = member['Energy on STR'] || 0;
+                const dex = member['Energy on DEX'] || 0;
+                const def = member['Energy on DEF'] || 0;
+                const spd = member['Energy on SPD'] || 0;
+                member['Energy on GYM'] = str + dex + def + spd;
+                
+                if (member.delta) {
+                    const dStr = member.delta['Energy on STR'] || 0;
+                    const dDex = member.delta['Energy on DEX'] || 0;
+                    const dDef = member.delta['Energy on DEF'] || 0;
+                    const dSpd = member.delta['Energy on SPD'] || 0;
+                    member.delta['Energy on GYM'] = dStr + dDex + dDef + dSpd;
+                }
+                
+                members.push(member);
+            });
+            
+            return { members, isDelta: !!startData, daysDiff };
+        }
+
+        function formatActivity(seconds) {
+            const days = Math.floor(seconds / 86400);
+            const hours = Math.floor((seconds % 86400) / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${days}d ${hours}h ${minutes}m ${secs}s`;
+        }
+
+        function formatNumber(num) {
+            if (num === null || num === undefined) return '0';
+            return num.toLocaleString();
+        }
+
+        function formatDonator(val) {
+            return val === 1 ? 'Yes' : 'No';
+        }
+
+        function formatEfficiency(val) {
+            if (!val || val === '-') return '-';
+            return (val * 100).toFixed(1) + '%';
+        }
+
+        const allAdminColumns = {
+            core: [
+                { key: 'id', label: 'ID', format: v => v },
+                { key: 'name', label: 'Name', format: v => v },
+                { key: 'age', label: 'Age', format: formatNumber },
+                { key: 'level', label: 'Level', format: v => v }
+            ],
+            all: [
+                { key: 'Rank', label: 'Rank', format: v => v || '-' },
+                { key: 'Days in Faction', label: 'Days in Faction', format: v => v || '-' },
+                { key: 'property', label: 'Property', format: v => v || '-' },
+                { key: 'donator', label: 'Donator', format: formatDonator },
+                { key: 'daysbeendonator', label: 'Donator Days', format: formatNumber },
+                { key: 'Total Battle Stat', label: 'Total Battle Stat', format: formatNumber },
+                { key: 'TornStats', label: 'TornStats', format: v => v || '-' },
+                { key: 'Discord', label: 'Discord', format: v => v || '-' },
+                { key: 'useractivity', label: 'Activity', format: formatActivity },
+                { key: 'bestactivestreak', label: 'Best Active Streak', format: formatNumber },
+                { key: 'activestreak', label: 'Active Streak', format: formatNumber },
+                { key: 'Activity Score', label: 'Activity Score', format: v => v || '-' },
+                { key: 'Activity Efficiency', label: 'Activity Efficiency', format: formatEfficiency },
+                { key: 'xantaken', label: 'Xan Taken', format: formatNumber },
+                { key: 'Xan Ratio', label: 'Xan Ratio', format: v => typeof v === 'number' ? v.toFixed(3) : v },
+                { key: 'refills', label: 'Refills', format: formatNumber },
+                { key: 'energydrinkused', label: 'Energy Drinks', format: formatNumber },
+                { key: 'exttaken', label: 'Ext Taken', format: formatNumber },
+                { key: 'overdosed', label: 'Overdosed', format: formatNumber },
+                { key: 'statenhancersused', label: 'SE Used', format: formatNumber },
+                { key: 'boostersused', label: 'Booster Used', format: formatNumber },
+                { key: 'candyused', label: 'Candy Used', format: formatNumber },
+                { key: 'alcoholused', label: 'Alcohol Used', format: formatNumber },
+                { key: 'attackswon', label: 'Attacks Won', format: formatNumber },
+                { key: 'attackslost', label: 'Attacks Lost', format: formatNumber },
+                { key: 'attacksassisted', label: 'Attacks Assist', format: formatNumber },
+                { key: 'rankedwarhits', label: 'RW Hits', format: formatNumber },
+                { key: 'criminaloffenses', label: 'Crimes', format: formatNumber },
+                { key: 'organisedcrimes', label: 'OC', format: formatNumber },
+                { key: 'Energy on STR', label: 'Energy on STR', format: formatNumber },
+                { key: 'Energy on DEX', label: 'Energy on DEX', format: formatNumber },
+                { key: 'Energy on DEF', label: 'Energy on DEF', format: formatNumber },
+                { key: 'Energy on SPD', label: 'Energy on SPD', format: formatNumber },
+                { key: 'Energy on GYM', label: 'Energy on GYM', format: formatNumber },
+                { key: 'traveltimes', label: 'Travel Times', format: formatNumber },
+                { key: 'itemsboughtabroad', label: 'Bought Abroad', format: formatNumber },
+                { key: 'argtravel', label: 'Argentina', format: formatNumber },
+                { key: 'mextravel', label: 'Mexico', format: formatNumber },
+                { key: 'dubtravel', label: 'Dubai', format: formatNumber },
+                { key: 'hawtravel', label: 'Hawaii', format: formatNumber },
+                { key: 'japtravel', label: 'Japan', format: formatNumber },
+                { key: 'lontravel', label: 'UK', format: formatNumber },
+                { key: 'soutravel', label: 'Africa', format: formatNumber },
+                { key: 'switravel', label: 'Switzerland', format: formatNumber },
+                { key: 'chitravel', label: 'China', format: formatNumber },
+                { key: 'cantravel', label: 'Canada', format: formatNumber },
+                { key: 'caytravel', label: 'Cayman', format: formatNumber },
+                { key: 'Daily Avr. Activity', label: 'Daily Avr. Activity', format: formatActivity, deltaOnly: true }
+            ],
+            lite: [
+                { key: 'refills', label: 'Refills', format: formatNumber },
+                { key: 'xantaken', label: 'Xan Taken', format: formatNumber },
+                { key: 'Xan Ratio', label: 'Xan Ratio', format: v => typeof v === 'number' ? v.toFixed(3) : v },
+                { key: 'exttaken', label: 'Ext Taken', format: formatNumber },
+                { key: 'overdosed', label: 'Overdosed', format: formatNumber },
+                { key: 'organisedcrimes', label: 'OC', format: formatNumber },
+                { key: 'Energy on GYM', label: 'Energy on GYM', format: formatNumber },
+                { key: 'Daily Avr. Activity', label: 'Daily Avr. Activity', format: formatActivity }
+            ],
+            battle: [
+                { key: 'Total Battle Stat', label: 'Total Battle Stat', format: formatNumber },
+                { key: 'attackswon', label: 'Attacks Won', format: formatNumber },
+                { key: 'attackslost', label: 'Attacks Lost', format: formatNumber },
+                { key: 'attacksassisted', label: 'Attacks Assist', format: formatNumber },
+                { key: 'rankedwarhits', label: 'RW Hits', format: formatNumber }
+            ],
+            activity: [
+                { key: 'useractivity', label: 'Activity', format: formatActivity },
+                { key: 'Daily Avr. Activity', label: 'Daily Avr. Activity', format: formatActivity },
+                { key: 'bestactivestreak', label: 'Best Active Streak', format: formatNumber },
+                { key: 'activestreak', label: 'Active Streak', format: formatNumber },
+                { key: 'Activity Score', label: 'Activity Score', format: v => v || '-' },
+                { key: 'Activity Efficiency', label: 'Activity Efficiency', format: formatEfficiency }
+            ],
+            drugs: [
+                { key: 'xantaken', label: 'Xan Taken', format: formatNumber },
+                { key: 'energydrinkused', label: 'Energy Drinks', format: formatNumber },
+                { key: 'refills', label: 'Refills', format: formatNumber },
+                { key: 'statenhancersused', label: 'SE Used', format: formatNumber },
+                { key: 'boostersused', label: 'Booster Used', format: formatNumber },
+                { key: 'candyused', label: 'Candy Used', format: formatNumber },
+                { key: 'alcoholused', label: 'Alcohol Used', format: formatNumber },
+                { key: 'exttaken', label: 'Ext Taken', format: formatNumber },
+                { key: 'overdosed', label: 'Overdosed', format: formatNumber }
+            ],
+            travel: [
+                { key: 'traveltimes', label: 'Travel Times', format: formatNumber },
+                { key: 'itemsboughtabroad', label: 'Bought Abroad', format: formatNumber },
+                { key: 'argtravel', label: 'Argentina', format: formatNumber },
+                { key: 'mextravel', label: 'Mexico', format: formatNumber },
+                { key: 'dubtravel', label: 'Dubai', format: formatNumber },
+                { key: 'hawtravel', label: 'Hawaii', format: formatNumber },
+                { key: 'japtravel', label: 'Japan', format: formatNumber },
+                { key: 'lontravel', label: 'UK', format: formatNumber },
+                { key: 'soutravel', label: 'Africa', format: formatNumber },
+                { key: 'switravel', label: 'Switzerland', format: formatNumber },
+                { key: 'chitravel', label: 'China', format: formatNumber },
+                { key: 'cantravel', label: 'Canada', format: formatNumber },
+                { key: 'caytravel', label: 'Cayman', format: formatNumber }
+            ],
+            gym: [
+                { key: 'xantaken', label: 'Xan Taken', format: formatNumber },
+                { key: 'Xan Ratio', label: 'Xan Ratio', format: v => typeof v === 'number' ? v.toFixed(3) : v },
+                { key: 'exttaken', label: 'Ext Taken', format: formatNumber },
+                { key: 'energydrinkused', label: 'Energy Drinks', format: formatNumber },
+                { key: 'refills', label: 'Refills', format: formatNumber },
+                { key: 'boostersused', label: 'Booster Used', format: formatNumber },
+                { key: 'candyused', label: 'Candy Used', format: formatNumber },
+                { key: 'Energy on STR', label: 'Energy on STR', format: formatNumber },
+                { key: 'Energy on DEX', label: 'Energy on DEX', format: formatNumber },
+                { key: 'Energy on DEF', label: 'Energy on DEF', format: formatNumber },
+                { key: 'Energy on SPD', label: 'Energy on SPD', format: formatNumber }
+            ],
+            faction: [
+                { key: 'Rank', label: 'Rank', format: v => v || '-' },
+                { key: 'Days in Faction', label: 'Days in Faction', format: v => v || '-' },
+                { key: 'Discord', label: 'Discord', format: v => v || '-' },
+                { key: 'TornStats', label: 'TornStats', format: v => v || '-' },
+                { key: 'donator', label: 'Donator', format: formatDonator },
+                { key: 'daysbeendonator', label: 'Donator Days', format: formatNumber },
+                { key: 'property', label: 'Property', format: v => v || '-' }
+            ],
+            crime: [
+                { key: 'alcoholused', label: 'Alcohol Used', format: formatNumber },
+                { key: 'criminaloffenses', label: 'Crimes', format: formatNumber },
+                { key: 'organisedcrimes', label: 'OC', format: formatNumber }
+            ]
+        };
+
+        function getVisibleAdminColumns() {
+            if (currentFilter === 'all') {
+                return [...allAdminColumns.core, ...allAdminColumns.all];
+            } else {
+                return [...allAdminColumns.core, ...allAdminColumns[currentFilter]];
+            }
+        }
+
+        function applyFilter() {
+            currentFilter = document.getElementById('dataFilter').value;
+            if (historicalData) {
+                displayHistoricalResults(historicalData, historicalData.isDelta, historicalData.daysDiff);
+            }
+        }
+
+        function displayHistoricalResults(data, isDelta, daysDiff) {
+            buildAdminTable(isDelta);
+            populateAdminTable(data.members, isDelta, daysDiff);
+            document.getElementById('adminResults').classList.remove('hidden');
+        }
+
+        function buildAdminTable(isDelta) {
+            const cols = getVisibleAdminColumns().filter(col => {
+                if (col.deltaOnly && !isDelta) return false;
+                return true;
+            });
+            
+            const headerRow = document.getElementById('adminTableHeader');
+            headerRow.innerHTML = '<tr>' + cols.map((col, idx) =>
+                `<th class="px-2 py-3 text-left cursor-pointer hover:text-purple-400 select-none" style="min-width:80px;" onclick="sortAdminTable(${idx})">
+                    ${col.label} <span class="text-xs">▼</span>
+                </th>`
+            ).join('') + '</tr>';
+        }
+
+        function populateAdminTable(members, isDelta, daysDiff) {
+            const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = '';
+            
+            const cols = getVisibleAdminColumns().filter(col => {
+                if (col.deltaOnly && !isDelta) return false;
+                return true;
+            });
+            
+            members.forEach(member => {
+                const row = tbody.insertRow();
+                row.className = 'hover:bg-gray-700/50 transition';
+                
+                cols.forEach(col => {
+                    const cell = row.insertCell();
+                    cell.className = 'px-2 py-3';
+                    
+                    let value;
+                    
+                    if (col.key === 'Daily Avr. Activity') {
+                        if (isDelta) {
+                            value = member.delta ? member.delta['Daily Avr. Activity'] : 0;
+                        } else {
+                            value = member['Daily Avr. Activity'] || 0;
+                        }
+                        cell.innerHTML = col.format(value);
+                    } else if (col.key === 'Xan Ratio' && isDelta) {
+                        value = member.delta ? member.delta['Xan Ratio'] : 0;
+                        cell.innerHTML = col.format(value);
+                    } else if (isDelta && member.delta && member.delta[col.key] !== undefined) {
+                        value = member.delta[col.key];
+                        const formatted = col.format(value);
+                        const color = value > 0 ? 'text-green-400' : (value < 0 ? 'text-red-400' : 'text-gray-400');
+                        const sign = value > 0 ? '+' : '';
+                        cell.innerHTML = `<span class="${color}">${sign}${formatted}</span>`;
+                    } else {
+                        value = member[col.key];
+                        cell.innerHTML = col.format(value);
+                    }
+                });
+            });
+        }
+
+        function sortAdminTable(columnIndex) {
+            if (!historicalData) return;
+            
+            const cols = getVisibleAdminColumns().filter(col => {
+                if (col.deltaOnly && !historicalData.isDelta) return false;
+                return true;
+            });
+            
+            const col = cols[columnIndex];
+            const ascending = currentSort.column === columnIndex ? !currentSort.ascending : false;
+            currentSort = { column: columnIndex, ascending };
+            
+            document.querySelectorAll('#adminTableHeader th span').forEach((span, idx) => {
+                span.textContent = idx === columnIndex ? (ascending ? '▲' : '▼') : '▼';
+            });
+            
+            const sorted = [...historicalData.members].sort((a, b) => {
+                let valA, valB;
+                
+                if (historicalData.isDelta && a.delta && a.delta[col.key] !== undefined) {
+                    valA = a.delta[col.key];
+                    valB = b.delta[col.key];
+                } else {
+                    valA = a[col.key];
+                    valB = b[col.key];
+                }
+                
+                if (typeof valA === 'string') {
+                    return ascending ? valA.localeCompare(valB || '') : (valB || '').localeCompare(valA);
+                }
+                
+                valA = valA || 0;
+                valB = valB || 0;
+                return ascending ? valA - valB : valB - valA;
+            });
+            
+            populateAdminTable(sorted, historicalData.isDelta, historicalData.daysDiff);
+        }
+
+        function filterAdminTable() {
+            if (!historicalData) return;
+            const search = document.getElementById('adminSearchBox').value.toLowerCase();
+            const filtered = historicalData.members.filter(m =>
+                m.name.toLowerCase().includes(search) || m.id.toString().includes(search)
+            );
+            populateAdminTable(filtered, historicalData.isDelta, historicalData.daysDiff);
+        }
+
+        function downloadAdminExcel() {
+            if (!historicalData) return;
+            
+            const cols = getVisibleAdminColumns().filter(col => {
+                if (col.deltaOnly && !historicalData.isDelta) return false;
+                return true;
+            });
+            
+            let csv = cols.map(c => c.label).join(',') + '\n';
+            
+            historicalData.members.forEach(m => {
+                const row = cols.map(col => {
+                    let value;
+                    
+                    if (col.key === 'Daily Avr. Activity') {
+                        if (historicalData.isDelta) {
+                            value = m.delta ? m.delta['Daily Avr. Activity'] : 0;
+                        } else {
+                            value = m['Daily Avr. Activity'] || 0;
+                        }
+                        return Math.floor(value);
+                    } else if (col.key === 'Xan Ratio' && historicalData.isDelta) {
+                        value = m.delta ? m.delta['Xan Ratio'] : 0;
+                        return value.toFixed(3);
+                    } else if (historicalData.isDelta && m.delta && m.delta[col.key] !== undefined) {
+                        return m.delta[col.key];
+                    } else {
+                        value = m[col.key];
+                        if (col.key === 'donator') return value === 1 ? 'Yes' : 'No';
+                        return value || 0;
+                    }
+                });
+                csv += row.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `nc_historical_${currentFilter}_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        function showAdminError(message) {
+            document.getElementById('adminErrorMessage').textContent = message;
+            document.getElementById('adminError').classList.remove('hidden');
+        }
+
+        // Auto-focus password field on load
+        window.addEventListener('load', () => {
+            document.getElementById('adminPassword').focus();
+        });
+    </script>
+</body>
+</html>

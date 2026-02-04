@@ -15,140 +15,14 @@
             </h1>
             <p class="text-gray-400">Analyze factions' performance</p>
             
-            <!-- Admin Button (Top Right) -->
-            <button onclick="showAdminLogin()" 
-                    class="absolute top-0 right-0 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-4 py-2 rounded-lg text-sm font-bold transition">
+            <!-- Admin Button -->
+            <a href="admin.html" 
+               class="absolute top-0 right-0 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-4 py-2 rounded-lg text-sm font-bold transition">
                 👤 NC Human Resources
-            </button>
+            </a>
         </div>
 
-        <!-- Admin Login Modal -->
-        <div id="adminLoginModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-            <div class="bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 border border-purple-500">
-                <h2 class="text-2xl font-bold mb-6 text-center">🔐 Admin Login</h2>
-                <input type="password" id="adminPassword" placeholder="Enter admin password" 
-                       class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 mb-4"
-                       onkeypress="if(event.key==='Enter') checkAdminPassword()">
-                <div id="loginError" class="hidden text-red-400 text-sm mb-4 text-center">❌ Incorrect password</div>
-                <div class="flex gap-4">
-                    <button onclick="checkAdminPassword()" 
-                            class="flex-1 bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-bold transition">
-                        Login
-                    </button>
-                    <button onclick="hideAdminLogin()" 
-                            class="flex-1 bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-lg font-bold transition">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Admin Panel -->
-        <div id="adminPanel" class="hidden">
-            <div class="max-w-6xl mx-auto bg-gray-800 rounded-lg shadow-2xl p-8 mb-8">
-                <h2 class="text-3xl font-bold mb-6 text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
-                    NC Human Resources - Historical Data
-                </h2>
-                
-                <!-- Time Range Selector -->
-                <div class="mb-6">
-                    <label class="block text-lg font-medium mb-4">Time Range:</label>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                        <label class="flex items-center space-x-3 bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition">
-                            <input type="radio" name="timeRange" value="current" checked onchange="handleTimeRangeChange()" class="w-5 h-5">
-                            <span class="font-medium">📅 Current</span>
-                        </label>
-                        <label class="flex items-center space-x-3 bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition">
-                            <input type="radio" name="timeRange" value="7days" onchange="handleTimeRangeChange()" class="w-5 h-5">
-                            <span class="font-medium">📊 Last 7 Days</span>
-                        </label>
-                        <label class="flex items-center space-x-3 bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition">
-                            <input type="radio" name="timeRange" value="30days" onchange="handleTimeRangeChange()" class="w-5 h-5">
-                            <span class="font-medium">📈 Last 30 Days</span>
-                        </label>
-                        <label class="flex items-center space-x-3 bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-600 transition">
-                            <input type="radio" name="timeRange" value="custom" onchange="handleTimeRangeChange()" class="w-5 h-5">
-                            <span class="font-medium">🗓️ Custom Range</span>
-                        </label>
-                    </div>
-                    
-                    <!-- Custom Date Range -->
-                    <div id="customDateRange" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div>
-                            <label class="block text-sm mb-2">From Date:</label>
-                            <input type="date" id="customFromDate" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm mb-2">To Date:</label>
-                            <input type="date" id="customToDate" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500">
-                        </div>
-                    </div>
-                    
-                    <div id="dateInfo" class="text-sm text-gray-400 mt-2"></div>
-                </div>
-
-                <button onclick="analyzeHistoricalData()" 
-                        class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-lg transition duration-200 transform hover:scale-105 text-lg">
-                    Analyze Historical Data
-                </button>
-                
-                <button onclick="closeAdminPanel()" 
-                        class="w-full mt-4 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition">
-                    ← Back to Main
-                </button>
-            </div>
-
-            <!-- Loading -->
-            <div id="adminLoading" class="hidden text-center py-12">
-                <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4"></div>
-                <p class="text-xl">Fetching historical data...</p>
-                <p class="text-sm text-gray-400 mt-2">This may take a moment</p>
-            </div>
-
-            <!-- Error -->
-            <div id="adminError" class="hidden max-w-4xl mx-auto bg-red-900/50 border border-red-500 rounded-lg p-6 mb-8">
-                <h3 class="text-xl font-bold mb-2">❌ Error</h3>
-                <p id="adminErrorMessage" class="text-red-200"></p>
-            </div>
-
-            <!-- Results -->
-            <div id="adminResults" class="hidden">
-                <!-- Filter & Actions Bar -->
-                <div class="flex gap-4 mb-6 flex-wrap items-center bg-gray-800 p-4 rounded-lg">
-                    <select id="dataFilter" onchange="applyFilter()" 
-                            class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 text-white">
-                        <option value="all">📋 All Data</option>
-                        <option value="lite">⭐ Lite Tracker</option>
-                        <option value="battle">Battle Stats</option>
-                        <option value="activity">Activity Stats</option>
-                        <option value="drugs">Drugs & Items</option>
-                        <option value="travel">Travel Stats</option>
-                        <option value="gym">GYM Training</option>
-                        <option value="faction">Faction Info</option>
-                        <option value="crime">Crime Stats</option>
-                    </select>
-                    <button onclick="downloadAdminExcel()" 
-                            class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition">
-                        📥 Download Excel
-                    </button>
-                    <input type="text" id="adminSearchBox" placeholder="Search members..." 
-                           onkeyup="filterAdminTable()"
-                           class="flex-1 min-w-[200px] px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500">
-                </div>
-
-                <!-- Members Table -->
-                <div class="bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm" id="adminMembersTable">
-                            <thead class="bg-gray-900" id="adminTableHeader"></thead>
-                            <tbody id="adminTableBody" class="divide-y divide-gray-700"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Original Input Form (kept as is) -->
+        <!-- Input Form -->
         <div id="inputForm" class="max-w-2xl mx-auto bg-gray-800 rounded-lg shadow-2xl p-8 mb-8">
             <div class="space-y-6">
                 <div>
@@ -157,7 +31,7 @@
                            class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-2">Torn API Key - Use Limited</label>
+                    <label class="block text-sm font-medium mb-2">Torn API Key-Use Limited</label>
                     <input type="password" id="apiKey" placeholder="Your Torn API key" 
                            class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     <p class="text-xs text-gray-500 mt-2">I dont know if other keys would work. Btw it doesnt store keys, no worries.</p>
@@ -182,595 +56,389 @@
             <p id="errorMessage" class="text-red-200"></p>
         </div>
 
-        <!-- Results (original live analyzer - keeping your existing code) -->
+        <!-- Results -->
         <div id="results" class="hidden">
-            <!-- Keeping original results section intact -->
+            <!-- Stats Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gray-800 rounded-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-purple-400" id="totalMembers">-</div>
+                    <div class="text-sm text-gray-400 mt-2">Total Members</div>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-pink-400" id="totalXanax">-</div>
+                    <div class="text-sm text-gray-400 mt-2">Total Xanax Taken</div>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-green-400" id="totalEnergyDrinks">-</div>
+                    <div class="text-sm text-gray-400 mt-2">Total Energy Drinks</div>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-6 text-center">
+                    <div class="text-3xl font-bold text-yellow-400" id="avgActivity">-</div>
+                    <div class="text-sm text-gray-400 mt-2">Avg Activity</div>
+                </div>
+            </div>
+
+            <!-- Actions Bar -->
+            <div class="flex gap-4 mb-6 flex-wrap">
+                <select id="viewMode" onchange="switchViewMode()" 
+                        class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 text-white">
+                    <option value="overall">📊 Overall</option>
+                    <option value="weekly">📅 Weekly Delta</option>
+                    <option value="monthly">📆 Monthly Delta</option>
+                </select>
+                <button onclick="downloadExcel()" 
+                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                    📥 Download Excel
+                </button>
+                <input type="text" id="searchBox" placeholder="Search members..." 
+                       onkeyup="filterTable()"
+                       class="flex-1 min-w-[200px] px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500">
+            </div>
+
+            <!-- Members Table -->
+            <div class="bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm" id="membersTable">
+                        <thead class="bg-gray-900" id="tableHeader"></thead>
+                        <tbody id="tableBody" class="divide-y divide-gray-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="mt-8 text-center">
+                <button onclick="goBack()" class="text-gray-400 hover:text-white transition">
+                    ← New Search
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        const ADMIN_PASSWORD = 'neonadmin';
-        // Using backend proxy instead of direct fetch
-        let historicalData = null;
-        let currentFilter = 'all';
+        let factionData = null;
+        let currentViewMode = 'overall';
         let currentSort = { column: null, ascending: false };
 
-        // Admin login functions
-        function showAdminLogin() {
-            document.getElementById('adminLoginModal').classList.remove('hidden');
-            document.getElementById('adminPassword').value = '';
-            document.getElementById('loginError').classList.add('hidden');
-            document.getElementById('adminPassword').focus();
-        }
+        // Columns that are HIDDEN in weekly/monthly mode
+        const hiddenInDelta = ['criminaloffenses', 'nerverefills', 'activestreak', 'organisedcrimes', 'statenhancersused'];
 
-        function hideAdminLogin() {
-            document.getElementById('adminLoginModal').classList.add('hidden');
-        }
+        // All column definitions
+        const allColumns = [
+            { key: 'id',                  label: 'ID',               type: 'base',  format: (v) => v },
+            { key: 'name',                label: 'Name',             type: 'base',  format: (v) => v },
+            { key: 'level',               label: 'Level',            type: 'base',  format: (v) => v },
+            { key: 'age',                 label: 'Age',              type: 'base',  format: (v) => v },
+            { key: 'faction_id',          label: 'Faction ID',       type: 'base',  format: (v) => v },
+            { key: 'attackswon',          label: 'Attacks Won',      type: 'stat',  format: formatNumber },
+            { key: 'attackslost',         label: 'Attacks Lost',     type: 'stat',  format: formatNumber },
+            { key: 'defendswon',          label: 'Defends Won',      type: 'stat',  format: formatNumber },
+            { key: 'defendslost',         label: 'Defends Lost',     type: 'stat',  format: formatNumber },
+            { key: 'rankedwarhits',       label: 'Ranked War Hits',  type: 'stat',  format: formatNumber },
+            { key: 'xantaken',            label: 'Xan Taken',        type: 'stat',  format: formatNumber },
+            { key: 'xan_daily',           label: 'Xan/Daily',        type: 'deltaOnly', format: (v) => v.toFixed(1) },
+            { key: 'boostersused',        label: 'Boosters Used',    type: 'stat',  format: formatNumber },
+            { key: 'energydrinkused',     label: 'Energy Drinks',    type: 'stat',  format: formatNumber },
+            { key: 'statenhancersused',   label: 'Stat Enhancers',   type: 'stat',  format: formatNumber, hideInDelta: true },
+            { key: 'useractivity',        label: 'Activity',         type: 'stat',  format: formatActivity },
+            { key: 'daily_avg_activity',  label: 'Daily Avr. Activity', type: 'deltaOnly', format: formatActivity },
+            { key: 'refills',             label: 'Refills',          type: 'stat',  format: formatNumber },
+            { key: 'nerverefills',        label: 'Nerve Refills',    type: 'stat',  format: formatNumber, hideInDelta: true },
+            { key: 'activestreak',        label: 'Active Streak',    type: 'stat',  format: formatNumber, hideInDelta: true },
+            { key: 'organisedcrimes',     label: 'OCs',              type: 'stat',  format: formatNumber, hideInDelta: true },
+            { key: 'criminaloffenses',    label: 'Crimes',           type: 'stat',  format: formatNumber, hideInDelta: true }
+        ];
 
-        function checkAdminPassword() {
-            const password = document.getElementById('adminPassword').value;
-            if (password === ADMIN_PASSWORD) {
-                hideAdminLogin();
-                openAdminPanel();
-            } else {
-                document.getElementById('loginError').classList.remove('hidden');
-                document.getElementById('adminPassword').value = '';
-                document.getElementById('adminPassword').focus();
-            }
-        }
-
-        function openAdminPanel() {
-            document.getElementById('inputForm').classList.add('hidden');
-            document.getElementById('results').classList.add('hidden');
-            document.getElementById('adminPanel').classList.remove('hidden');
-            updateDateInfo();
-        }
-
-        function closeAdminPanel() {
-            document.getElementById('adminPanel').classList.add('hidden');
-            document.getElementById('adminResults').classList.add('hidden');
-            document.getElementById('inputForm').classList.remove('hidden');
-        }
-
-        function handleTimeRangeChange() {
-            const selected = document.querySelector('input[name="timeRange"]:checked').value;
-            const customRange = document.getElementById('customDateRange');
-            
-            if (selected === 'custom') {
-                customRange.classList.remove('hidden');
-            } else {
-                customRange.classList.add('hidden');
-            }
-            
-            updateDateInfo();
-        }
-
-        function updateDateInfo() {
-            const selected = document.querySelector('input[name="timeRange"]:checked').value;
-            const dateInfo = document.getElementById('dateInfo');
-            const today = new Date();
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-            
-            let info = '';
-            
-            if (selected === 'current') {
-                info = `📅 Will show snapshot from: ${formatDate(yesterday)}`;
-            } else if (selected === '7days') {
-                const weekAgo = new Date(yesterday);
-                weekAgo.setDate(weekAgo.getDate() - 7);
-                info = `📊 Will compare: ${formatDate(yesterday)} vs ${formatDate(weekAgo)} (7 days delta)`;
-            } else if (selected === '30days') {
-                const monthAgo = new Date(yesterday);
-                monthAgo.setDate(monthAgo.getDate() - 30);
-                info = `📈 Will compare: ${formatDate(yesterday)} vs ${formatDate(monthAgo)} (30 days delta)`;
-            } else if (selected === 'custom') {
-                info = '🗓️ Select your custom date range above';
-            }
-            
-            dateInfo.textContent = info;
-        }
-
-        function formatDate(date) {
-            return date.toISOString().split('T')[0];
-        }
-
-        async function analyzeHistoricalData() {
-            const selected = document.querySelector('input[name="timeRange"]:checked').value;
-            let endDate, startDate, daysDiff;
-            
-            const today = new Date();
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-            
-            if (selected === 'current') {
-                endDate = formatDate(yesterday);
-                startDate = null;
-                daysDiff = 0;
-            } else if (selected === '7days') {
-                endDate = formatDate(yesterday);
-                const weekAgo = new Date(yesterday);
-                weekAgo.setDate(weekAgo.getDate() - 7);
-                startDate = formatDate(weekAgo);
-                daysDiff = 7;
-            } else if (selected === '30days') {
-                endDate = formatDate(yesterday);
-                const monthAgo = new Date(yesterday);
-                monthAgo.setDate(monthAgo.getDate() - 30);
-                startDate = formatDate(monthAgo);
-                daysDiff = 30;
-            } else if (selected === 'custom') {
-                const from = document.getElementById('customFromDate').value;
-                const to = document.getElementById('customToDate').value;
-                
-                if (!from || !to) {
-                    showAdminError('Please select both dates for custom range');
-                    return;
-                }
-                
-                startDate = from;
-                endDate = to;
-                const d1 = new Date(from);
-                const d2 = new Date(to);
-                daysDiff = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
-                
-                if (daysDiff <= 0) {
-                    showAdminError('End date must be after start date');
-                    return;
-                }
-            }
-            
-            document.getElementById('adminError').classList.add('hidden');
-            document.getElementById('adminResults').classList.add('hidden');
-            document.getElementById('adminLoading').classList.remove('hidden');
-            
-            try {
-                const endData = await fetchSnapshot(endDate);
-                
-                if (!endData) {
-                    throw new Error(`Snapshot for ${endDate} not found. Please select another date.`);
-                }
-                
-                let startData = null;
-                if (startDate) {
-                    startData = await fetchSnapshot(startDate);
-                    if (!startData) {
-                        throw new Error(`Snapshot for ${startDate} not found. Please select another date.`);
-                    }
-                }
-                
-                historicalData = processHistoricalData(endData, startData, daysDiff);
-                displayHistoricalResults(historicalData, selected !== 'current', daysDiff);
-                
-            } catch (error) {
-                showAdminError(error.message);
-            } finally {
-                document.getElementById('adminLoading').classList.add('hidden');
-            }
-        }
-
-        async function fetchSnapshot(date) {
-            // Use backend proxy to avoid CORS
-            const url = `/api/snapshot/${date}`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) return null;
-                return await response.json();
-            } catch (error) {
-                console.error('Snapshot fetch error:', error);
-                return null;
-            }
-        }
-
-        function processHistoricalData(endData, startData, daysDiff) {
-            const members = [];
-            
-            // If delta mode, only include members present in both snapshots
-            const memberIds = startData 
-                ? Object.keys(endData).filter(id => startData[id]) 
-                : Object.keys(endData);
-            
-            memberIds.forEach(id => {
-                const endMember = endData[id];
-                const startMember = startData ? startData[id] : null;
-                
-                const member = {
-                    id: id,
-                    ...endMember
-                };
-                
-                // Calculate delta if in delta mode
-                if (startMember && daysDiff > 0) {
-                    member.delta = {};
-                    member.daysDiff = daysDiff;
-                    
-                    // Calculate deltas for numeric fields
-                    const numericFields = [
-                        'xantaken', 'exttaken', 'energydrinkused', 'refills', 'statenhancersused',
-                        'attackswon', 'attackslost', 'attacksassisted', 'overdosed', 'boostersused',
-                        'criminaloffenses', 'rankedwarhits', 'candyused', 'alcoholused', 'useractivity',
-                        'organisedcrimes', 'Energy on STR', 'Energy on DEX', 'Energy on DEF', 'Energy on SPD',
-                        'traveltimes', 'itemsboughtabroad', 'argtravel', 'mextravel', 'dubtravel',
-                        'hawtravel', 'japtravel', 'lontravel', 'soutravel', 'switravel', 
-                        'chitravel', 'cantravel', 'caytravel'
-                    ];
-                    
-                    numericFields.forEach(field => {
-                        const endVal = endMember[field] || 0;
-                        const startVal = startMember[field] || 0;
-                        member.delta[field] = endVal - startVal;
-                    });
-                    
-                    // Calculate Xan Ratio (delta)
-                    member.delta['Xan Ratio'] = member.delta.xantaken / daysDiff;
-                    
-                    // Calculate Daily Avr. Activity (delta)
-                    member.delta['Daily Avr. Activity'] = member.delta.useractivity / daysDiff;
-                } else {
-                    // Current mode: calculate daily average activity
-                    member['Daily Avr. Activity'] = member.useractivity / member.age;
-                }
-                
-                // Calculate Energy on GYM
-                const str = member['Energy on STR'] || 0;
-                const dex = member['Energy on DEX'] || 0;
-                const def = member['Energy on DEF'] || 0;
-                const spd = member['Energy on SPD'] || 0;
-                member['Energy on GYM'] = str + dex + def + spd;
-                
-                if (member.delta) {
-                    const dStr = member.delta['Energy on STR'] || 0;
-                    const dDex = member.delta['Energy on DEX'] || 0;
-                    const dDef = member.delta['Energy on DEF'] || 0;
-                    const dSpd = member.delta['Energy on SPD'] || 0;
-                    member.delta['Energy on GYM'] = dStr + dDex + dDef + dSpd;
-                }
-                
-                members.push(member);
+        // Get visible columns based on current view mode
+        function getVisibleColumns() {
+            return allColumns.filter(col => {
+                if (col.type === 'deltaOnly' && currentViewMode === 'overall') return false;
+                if (col.hideInDelta && currentViewMode !== 'overall') return false;
+                return true;
             });
-            
-            return { members, isDelta: !!startData, daysDiff };
+        }
+
+        function formatNumber(num) {
+            return num.toLocaleString();
         }
 
         function formatActivity(seconds) {
             const days = Math.floor(seconds / 86400);
             const hours = Math.floor((seconds % 86400) / 3600);
             const minutes = Math.floor((seconds % 3600) / 60);
-            const secs = Math.floor(seconds % 60);
+            const secs = seconds % 60;
             return `${days}d ${hours}h ${minutes}m ${secs}s`;
         }
 
-        function formatNumber(num) {
-            if (num === null || num === undefined) return '0';
-            return num.toLocaleString();
+        function formatDelta(value, isActivity) {
+            const prefix = value > 0 ? '+' : '';
+            const formatted = isActivity ? formatActivity(Math.abs(value)) : formatNumber(Math.abs(value));
+            const sign = value < 0 ? '-' : prefix;
+
+            if (value > 0) return `<span class="text-green-400">${sign}${formatted}</span>`;
+            if (value < 0) return `<span class="text-red-400">${sign}${formatted}</span>`;
+            return `<span class="text-gray-500">0</span>`;
         }
 
-        function formatDonator(val) {
-            return val === 1 ? 'Yes' : 'No';
-        }
+        // ─── ANALYZE ─────────────────────────────────
+        async function analyzeFaction() {
+            const factionId = document.getElementById('factionId').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
 
-        function formatEfficiency(val) {
-            if (!val || val === '-') return '-';
-            return (val * 100).toFixed(1) + '%';
-        }
+            if (!factionId || !apiKey) {
+                showError('Please enter both Faction ID and API Key');
+                return;
+            }
 
-        // Column definitions with filter categories
-        const allAdminColumns = {
-            // Always visible
-            core: [
-                { key: 'id', label: 'ID', format: v => v },
-                { key: 'name', label: 'Name', format: v => v },
-                { key: 'age', label: 'Age', format: formatNumber },
-                { key: 'level', label: 'Level', format: v => v }
-            ],
-            // Category columns
-            all: [
-                { key: 'Rank', label: 'Rank', format: v => v || '-' },
-                { key: 'Days in Faction', label: 'Days in Faction', format: v => v || '-' },
-                { key: 'property', label: 'Property', format: v => v || '-' },
-                { key: 'donator', label: 'Donator', format: formatDonator },
-                { key: 'daysbeendonator', label: 'Donator Days', format: formatNumber },
-                { key: 'Total Battle Stat', label: 'Total Battle Stat', format: formatNumber },
-                { key: 'TornStats', label: 'TornStats', format: v => v || '-' },
-                { key: 'Discord', label: 'Discord', format: v => v || '-' },
-                { key: 'useractivity', label: 'Activity', format: formatActivity },
-                { key: 'bestactivestreak', label: 'Best Active Streak', format: formatNumber },
-                { key: 'activestreak', label: 'Active Streak', format: formatNumber },
-                { key: 'Activity Score', label: 'Activity Score', format: v => v || '-' },
-                { key: 'Activity Efficiency', label: 'Activity Efficiency', format: formatEfficiency },
-                { key: 'xantaken', label: 'Xan Taken', format: formatNumber },
-                { key: 'Xan Ratio', label: 'Xan Ratio', format: v => typeof v === 'number' ? v.toFixed(3) : v },
-                { key: 'refills', label: 'Refills', format: formatNumber },
-                { key: 'energydrinkused', label: 'Energy Drinks', format: formatNumber },
-                { key: 'exttaken', label: 'Ext Taken', format: formatNumber },
-                { key: 'overdosed', label: 'Overdosed', format: formatNumber },
-                { key: 'statenhancersused', label: 'SE Used', format: formatNumber },
-                { key: 'boostersused', label: 'Booster Used', format: formatNumber },
-                { key: 'candyused', label: 'Candy Used', format: formatNumber },
-                { key: 'alcoholused', label: 'Alcohol Used', format: formatNumber },
-                { key: 'attackswon', label: 'Attacks Won', format: formatNumber },
-                { key: 'attackslost', label: 'Attacks Lost', format: formatNumber },
-                { key: 'attacksassisted', label: 'Attacks Assist', format: formatNumber },
-                { key: 'rankedwarhits', label: 'RW Hits', format: formatNumber },
-                { key: 'criminaloffenses', label: 'Crimes', format: formatNumber },
-                { key: 'organisedcrimes', label: 'OC', format: formatNumber },
-                { key: 'Energy on STR', label: 'Energy on STR', format: formatNumber },
-                { key: 'Energy on DEX', label: 'Energy on DEX', format: formatNumber },
-                { key: 'Energy on DEF', label: 'Energy on DEF', format: formatNumber },
-                { key: 'Energy on SPD', label: 'Energy on SPD', format: formatNumber },
-                { key: 'Energy on GYM', label: 'Energy on GYM', format: formatNumber },
-                { key: 'traveltimes', label: 'Travel Times', format: formatNumber },
-                { key: 'itemsboughtabroad', label: 'Bought Abroad', format: formatNumber },
-                { key: 'argtravel', label: 'Argentina', format: formatNumber },
-                { key: 'mextravel', label: 'Mexico', format: formatNumber },
-                { key: 'dubtravel', label: 'Dubai', format: formatNumber },
-                { key: 'hawtravel', label: 'Hawaii', format: formatNumber },
-                { key: 'japtravel', label: 'Japan', format: formatNumber },
-                { key: 'lontravel', label: 'UK', format: formatNumber },
-                { key: 'soutravel', label: 'Africa', format: formatNumber },
-                { key: 'switravel', label: 'Switzerland', format: formatNumber },
-                { key: 'chitravel', label: 'China', format: formatNumber },
-                { key: 'cantravel', label: 'Canada', format: formatNumber },
-                { key: 'caytravel', label: 'Cayman', format: formatNumber },
-                { key: 'Daily Avr. Activity', label: 'Daily Avr. Activity', format: formatActivity, deltaOnly: true }
-            ],
-            lite: [
-                { key: 'refills', label: 'Refills', format: formatNumber },
-                { key: 'xantaken', label: 'Xan Taken', format: formatNumber },
-                { key: 'Xan Ratio', label: 'Xan Ratio', format: v => typeof v === 'number' ? v.toFixed(3) : v },
-                { key: 'exttaken', label: 'Ext Taken', format: formatNumber },
-                { key: 'overdosed', label: 'Overdosed', format: formatNumber },
-                { key: 'organisedcrimes', label: 'OC', format: formatNumber },
-                { key: 'Energy on GYM', label: 'Energy on GYM', format: formatNumber },
-                { key: 'Daily Avr. Activity', label: 'Daily Avr. Activity', format: formatActivity }
-            ],
-            battle: [
-                { key: 'Total Battle Stat', label: 'Total Battle Stat', format: formatNumber },
-                { key: 'attackswon', label: 'Attacks Won', format: formatNumber },
-                { key: 'attackslost', label: 'Attacks Lost', format: formatNumber },
-                { key: 'attacksassisted', label: 'Attacks Assist', format: formatNumber },
-                { key: 'rankedwarhits', label: 'RW Hits', format: formatNumber }
-            ],
-            activity: [
-                { key: 'useractivity', label: 'Activity', format: formatActivity },
-                { key: 'Daily Avr. Activity', label: 'Daily Avr. Activity', format: formatActivity },
-                { key: 'bestactivestreak', label: 'Best Active Streak', format: formatNumber },
-                { key: 'activestreak', label: 'Active Streak', format: formatNumber },
-                { key: 'Activity Score', label: 'Activity Score', format: v => v || '-' },
-                { key: 'Activity Efficiency', label: 'Activity Efficiency', format: formatEfficiency }
-            ],
-            drugs: [
-                { key: 'xantaken', label: 'Xan Taken', format: formatNumber },
-                { key: 'energydrinkused', label: 'Energy Drinks', format: formatNumber },
-                { key: 'refills', label: 'Refills', format: formatNumber },
-                { key: 'statenhancersused', label: 'SE Used', format: formatNumber },
-                { key: 'boostersused', label: 'Booster Used', format: formatNumber },
-                { key: 'candyused', label: 'Candy Used', format: formatNumber },
-                { key: 'alcoholused', label: 'Alcohol Used', format: formatNumber },
-                { key: 'exttaken', label: 'Ext Taken', format: formatNumber },
-                { key: 'overdosed', label: 'Overdosed', format: formatNumber }
-            ],
-            travel: [
-                { key: 'traveltimes', label: 'Travel Times', format: formatNumber },
-                { key: 'itemsboughtabroad', label: 'Bought Abroad', format: formatNumber },
-                { key: 'argtravel', label: 'Argentina', format: formatNumber },
-                { key: 'mextravel', label: 'Mexico', format: formatNumber },
-                { key: 'dubtravel', label: 'Dubai', format: formatNumber },
-                { key: 'hawtravel', label: 'Hawaii', format: formatNumber },
-                { key: 'japtravel', label: 'Japan', format: formatNumber },
-                { key: 'lontravel', label: 'UK', format: formatNumber },
-                { key: 'soutravel', label: 'Africa', format: formatNumber },
-                { key: 'switravel', label: 'Switzerland', format: formatNumber },
-                { key: 'chitravel', label: 'China', format: formatNumber },
-                { key: 'cantravel', label: 'Canada', format: formatNumber },
-                { key: 'caytravel', label: 'Cayman', format: formatNumber }
-            ],
-            gym: [
-                { key: 'xantaken', label: 'Xan Taken', format: formatNumber },
-                { key: 'Xan Ratio', label: 'Xan Ratio', format: v => typeof v === 'number' ? v.toFixed(3) : v },
-                { key: 'exttaken', label: 'Ext Taken', format: formatNumber },
-                { key: 'energydrinkused', label: 'Energy Drinks', format: formatNumber },
-                { key: 'refills', label: 'Refills', format: formatNumber },
-                { key: 'boostersused', label: 'Booster Used', format: formatNumber },
-                { key: 'candyused', label: 'Candy Used', format: formatNumber },
-                { key: 'Energy on STR', label: 'Energy on STR', format: formatNumber },
-                { key: 'Energy on DEX', label: 'Energy on DEX', format: formatNumber },
-                { key: 'Energy on DEF', label: 'Energy on DEF', format: formatNumber },
-                { key: 'Energy on SPD', label: 'Energy on SPD', format: formatNumber }
-            ],
-            faction: [
-                { key: 'Rank', label: 'Rank', format: v => v || '-' },
-                { key: 'Days in Faction', label: 'Days in Faction', format: v => v || '-' },
-                { key: 'Discord', label: 'Discord', format: v => v || '-' },
-                { key: 'TornStats', label: 'TornStats', format: v => v || '-' },
-                { key: 'donator', label: 'Donator', format: formatDonator },
-                { key: 'daysbeendonator', label: 'Donator Days', format: formatNumber },
-                { key: 'property', label: 'Property', format: v => v || '-' }
-            ],
-            crime: [
-                { key: 'alcoholused', label: 'Alcohol Used', format: formatNumber },
-                { key: 'criminaloffenses', label: 'Crimes', format: formatNumber },
-                { key: 'organisedcrimes', label: 'OC', format: formatNumber }
-            ]
-        };
+            document.getElementById('inputForm').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
 
-        function getVisibleAdminColumns() {
-            if (currentFilter === 'all') {
-                return [...allAdminColumns.core, ...allAdminColumns.all];
-            } else {
-                return [...allAdminColumns.core, ...allAdminColumns[currentFilter]];
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ faction_id: factionId, api_key: apiKey })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch data');
+                }
+
+                factionData = data;
+                displayResults(data);
+
+            } catch (error) {
+                showError(error.message);
+                document.getElementById('inputForm').classList.remove('hidden');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
             }
         }
 
-        function applyFilter() {
-            currentFilter = document.getElementById('dataFilter').value;
-            if (historicalData) {
-                displayHistoricalResults(historicalData, historicalData.isDelta, historicalData.daysDiff);
-            }
+        // ─── DISPLAY ─────────────────────────────────
+        function displayResults(data) {
+            const members = data.members;
+
+            // Overview Cards
+            const totalMembers = members.length;
+            const totalXanax = members.reduce((s, m) => s + (m.current?.xantaken || 0), 0);
+            const totalEnergyDrinks = members.reduce((s, m) => s + (m.current?.energydrinkused || 0), 0);
+            const avgActivitySec = Math.round(members.reduce((s, m) => s + (m.current?.useractivity || 0), 0) / totalMembers);
+
+            document.getElementById('totalMembers').textContent = totalMembers;
+            document.getElementById('totalXanax').textContent = formatNumber(totalXanax);
+            document.getElementById('totalEnergyDrinks').textContent = formatNumber(totalEnergyDrinks);
+            document.getElementById('avgActivity').textContent = formatActivity(avgActivitySec);
+
+            // Table
+            buildTable();
+            populateTable(members);
+
+            document.getElementById('results').classList.remove('hidden');
         }
 
-        function displayHistoricalResults(data, isDelta, daysDiff) {
-            buildAdminTable(isDelta);
-            populateAdminTable(data.members, isDelta, daysDiff);
-            document.getElementById('adminResults').classList.remove('hidden');
-        }
-
-        function buildAdminTable(isDelta) {
-            const cols = getVisibleAdminColumns().filter(col => {
-                if (col.deltaOnly && !isDelta) return false;
-                return true;
-            });
-            
-            const headerRow = document.getElementById('adminTableHeader');
+        // ─── TABLE ───────────────────────────────────
+        function buildTable() {
+            const cols = getVisibleColumns();
+            const headerRow = document.getElementById('tableHeader');
             headerRow.innerHTML = '<tr>' + cols.map((col, idx) =>
-                `<th class="px-2 py-3 text-left cursor-pointer hover:text-purple-400 select-none" style="min-width:80px;" onclick="sortAdminTable(${idx})">
+                `<th class="px-2 py-3 text-left cursor-pointer hover:text-purple-400 select-none" style="min-width:60px; max-width:90px;" onclick="sortTable(${idx})">
                     ${col.label} <span class="text-xs">▼</span>
                 </th>`
             ).join('') + '</tr>';
         }
 
-        function populateAdminTable(members, isDelta, daysDiff) {
-            const tbody = document.getElementById('adminTableBody');
+        function populateTable(members) {
+            const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            
-            const cols = getVisibleAdminColumns().filter(col => {
-                if (col.deltaOnly && !isDelta) return false;
-                return true;
-            });
-            
+
+            const cols = getVisibleColumns();
+            const divisor = currentViewMode === 'weekly' ? 7 : (currentViewMode === 'monthly' ? 30 : 1);
+
             members.forEach(member => {
                 const row = tbody.insertRow();
                 row.className = 'hover:bg-gray-700/50 transition';
-                
+
                 cols.forEach(col => {
                     const cell = row.insertCell();
                     cell.className = 'px-2 py-3';
-                    
-                    let value;
-                    
-                    if (col.key === 'Daily Avr. Activity') {
-                        if (isDelta) {
-                            value = member.delta ? member.delta['Daily Avr. Activity'] : 0;
-                        } else {
-                            value = member['Daily Avr. Activity'] || 0;
-                        }
+
+                    // Base columns (id, name, level, age, faction_id)
+                    if (col.type === 'base') {
+                        cell.innerHTML = col.format(member[col.key] ?? '-');
+                        return;
+                    }
+
+                    // Xan/Daily (only in delta modes)
+                    if (col.key === 'xan_daily') {
+                        const current = member.current?.xantaken || 0;
+                        const past = (currentViewMode === 'weekly' ? member.weekly : member.monthly)?.xantaken || 0;
+                        const delta = current - past;
+                        const daily = delta / divisor;
+                        cell.innerHTML = `<span class="${daily >= 0 ? 'text-green-400' : 'text-red-400'}">${daily >= 0 ? '+' : ''}${daily.toFixed(1)}</span>`;
+                        return;
+                    }
+
+                    // Daily Avg Activity (only in delta modes)
+                    if (col.key === 'daily_avg_activity') {
+                        const current = member.current?.useractivity || 0;
+                        const past = (currentViewMode === 'weekly' ? member.weekly : member.monthly)?.useractivity || 0;
+                        const delta = current - past;
+                        const dailyAvg = Math.floor(delta / divisor);
+                        cell.innerHTML = `<span class="${dailyAvg >= 0 ? 'text-green-400' : 'text-red-400'}">${dailyAvg >= 0 ? '+' : ''}${formatActivity(Math.abs(dailyAvg))}</span>`;
+                        return;
+                    }
+
+                    // Stat columns
+                    if (currentViewMode === 'overall') {
+                        const value = member.current?.[col.key] || 0;
                         cell.innerHTML = col.format(value);
-                    } else if (col.key === 'Xan Ratio' && isDelta) {
-                        value = member.delta ? member.delta['Xan Ratio'] : 0;
-                        cell.innerHTML = col.format(value);
-                    } else if (isDelta && member.delta && member.delta[col.key] !== undefined) {
-                        value = member.delta[col.key];
-                        const formatted = col.format(value);
-                        const color = value > 0 ? 'text-green-400' : (value < 0 ? 'text-red-400' : 'text-gray-400');
-                        const sign = value > 0 ? '+' : '';
-                        cell.innerHTML = `<span class="${color}">${sign}${formatted}</span>`;
                     } else {
-                        value = member[col.key];
-                        cell.innerHTML = col.format(value);
+                        const current = member.current?.[col.key] || 0;
+                        const past = (currentViewMode === 'weekly' ? member.weekly : member.monthly)?.[col.key] || 0;
+                        const delta = current - past;
+                        cell.innerHTML = formatDelta(delta, col.key === 'useractivity');
                     }
                 });
             });
         }
 
-        function sortAdminTable(columnIndex) {
-            if (!historicalData) return;
-            
-            const cols = getVisibleAdminColumns().filter(col => {
-                if (col.deltaOnly && !historicalData.isDelta) return false;
-                return true;
-            });
-            
+        // ─── SORT ────────────────────────────────────
+        function sortTable(columnIndex) {
+            if (!factionData) return;
+
+            const cols = getVisibleColumns();
             const col = cols[columnIndex];
             const ascending = currentSort.column === columnIndex ? !currentSort.ascending : false;
             currentSort = { column: columnIndex, ascending };
-            
-            document.querySelectorAll('#adminTableHeader th span').forEach((span, idx) => {
+
+            // Update header arrows
+            document.querySelectorAll('#tableHeader th span').forEach((span, idx) => {
                 span.textContent = idx === columnIndex ? (ascending ? '▲' : '▼') : '▼';
             });
-            
-            const sorted = [...historicalData.members].sort((a, b) => {
+
+            const divisor = currentViewMode === 'weekly' ? 7 : (currentViewMode === 'monthly' ? 30 : 1);
+
+            const sorted = [...factionData.members].sort((a, b) => {
                 let valA, valB;
-                
-                if (historicalData.isDelta && a.delta && a.delta[col.key] !== undefined) {
-                    valA = a.delta[col.key];
-                    valB = b.delta[col.key];
-                } else {
+
+                if (col.type === 'base') {
                     valA = a[col.key];
                     valB = b[col.key];
+                } else if (col.key === 'xan_daily') {
+                    const curA = a.current?.xantaken || 0;
+                    const pastA = (currentViewMode === 'weekly' ? a.weekly : a.monthly)?.xantaken || 0;
+                    valA = (curA - pastA) / divisor;
+
+                    const curB = b.current?.xantaken || 0;
+                    const pastB = (currentViewMode === 'weekly' ? b.weekly : b.monthly)?.xantaken || 0;
+                    valB = (curB - pastB) / divisor;
+                } else if (col.key === 'daily_avg_activity') {
+                    const curA = a.current?.useractivity || 0;
+                    const pastA = (currentViewMode === 'weekly' ? a.weekly : a.monthly)?.useractivity || 0;
+                    valA = (curA - pastA) / divisor;
+
+                    const curB = b.current?.useractivity || 0;
+                    const pastB = (currentViewMode === 'weekly' ? b.weekly : b.monthly)?.useractivity || 0;
+                    valB = (curB - pastB) / divisor;
+                } else {
+                    if (currentViewMode === 'overall') {
+                        valA = a.current?.[col.key] || 0;
+                        valB = b.current?.[col.key] || 0;
+                    } else {
+                        valA = (a.current?.[col.key] || 0) - ((currentViewMode === 'weekly' ? a.weekly : a.monthly)?.[col.key] || 0);
+                        valB = (b.current?.[col.key] || 0) - ((currentViewMode === 'weekly' ? b.weekly : b.monthly)?.[col.key] || 0);
+                    }
                 }
-                
-                if (typeof valA === 'string') {
-                    return ascending ? valA.localeCompare(valB || '') : (valB || '').localeCompare(valA);
-                }
-                
-                valA = valA || 0;
-                valB = valB || 0;
+
+                if (typeof valA === 'string') return ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
                 return ascending ? valA - valB : valB - valA;
             });
-            
-            populateAdminTable(sorted, historicalData.isDelta, historicalData.daysDiff);
+
+            populateTable(sorted);
         }
 
-        function filterAdminTable() {
-            if (!historicalData) return;
-            const search = document.getElementById('adminSearchBox').value.toLowerCase();
-            const filtered = historicalData.members.filter(m =>
+        // ─── VIEW MODE ───────────────────────────────
+        function switchViewMode() {
+            currentViewMode = document.getElementById('viewMode').value;
+            currentSort = { column: null, ascending: false };
+            if (factionData) {
+                buildTable();
+                populateTable(factionData.members);
+            }
+        }
+
+        // ─── SEARCH ──────────────────────────────────
+        function filterTable() {
+            if (!factionData) return;
+            const search = document.getElementById('searchBox').value.toLowerCase();
+            const filtered = factionData.members.filter(m =>
                 m.name.toLowerCase().includes(search) || m.id.toString().includes(search)
             );
-            populateAdminTable(filtered, historicalData.isDelta, historicalData.daysDiff);
+            populateTable(filtered);
         }
 
-        function downloadAdminExcel() {
-            if (!historicalData) return;
-            
-            const cols = getVisibleAdminColumns().filter(col => {
-                if (col.deltaOnly && !historicalData.isDelta) return false;
-                return true;
-            });
-            
+        // ─── DOWNLOAD ────────────────────────────────
+        function downloadExcel() {
+            if (!factionData) return;
+
+            const cols = getVisibleColumns();
+            const divisor = currentViewMode === 'weekly' ? 7 : (currentViewMode === 'monthly' ? 30 : 1);
+
             let csv = cols.map(c => c.label).join(',') + '\n';
-            
-            historicalData.members.forEach(m => {
+
+            factionData.members.forEach(m => {
                 const row = cols.map(col => {
-                    let value;
-                    
-                    if (col.key === 'Daily Avr. Activity') {
-                        if (historicalData.isDelta) {
-                            value = m.delta ? m.delta['Daily Avr. Activity'] : 0;
-                        } else {
-                            value = m['Daily Avr. Activity'] || 0;
-                        }
-                        return Math.floor(value);
-                    } else if (col.key === 'Xan Ratio' && historicalData.isDelta) {
-                        value = m.delta ? m.delta['Xan Ratio'] : 0;
-                        return value.toFixed(3);
-                    } else if (historicalData.isDelta && m.delta && m.delta[col.key] !== undefined) {
-                        return m.delta[col.key];
+                    if (col.type === 'base') return m[col.key] ?? '';
+
+                    if (col.key === 'xan_daily') {
+                        const cur = m.current?.xantaken || 0;
+                        const past = (currentViewMode === 'weekly' ? m.weekly : m.monthly)?.xantaken || 0;
+                        return ((cur - past) / divisor).toFixed(1);
+                    }
+
+                    if (col.key === 'daily_avg_activity') {
+                        const cur = m.current?.useractivity || 0;
+                        const past = (currentViewMode === 'weekly' ? m.weekly : m.monthly)?.useractivity || 0;
+                        return Math.floor((cur - past) / divisor);
+                    }
+
+                    if (currentViewMode === 'overall') {
+                        return m.current?.[col.key] || 0;
                     } else {
-                        value = m[col.key];
-                        if (col.key === 'donator') return value === 1 ? 'Yes' : 'No';
-                        return value || 0;
+                        const cur = m.current?.[col.key] || 0;
+                        const past = (currentViewMode === 'weekly' ? m.weekly : m.monthly)?.[col.key] || 0;
+                        return cur - past;
                     }
                 });
                 csv += row.join(',') + '\n';
             });
-            
+
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `nc_historical_${currentFilter}_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `faction_${factionData.faction_id}_${currentViewMode}.csv`;
             a.click();
         }
 
-        function showAdminError(message) {
-            document.getElementById('adminErrorMessage').textContent = message;
-            document.getElementById('adminError').classList.remove('hidden');
+        // ─── UTILS ───────────────────────────────────
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('error').classList.remove('hidden');
         }
 
-        // Original live analyzer functions (keeping your existing code)
-        // ... (rest of original functions for live API analysis)
-        
+        function goBack() {
+            factionData = null;
+            currentViewMode = 'overall';
+            currentSort = { column: null, ascending: false };
+            document.getElementById('viewMode').value = 'overall';
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('inputForm').classList.remove('hidden');
+        }
     </script>
 </body>
 </html>
